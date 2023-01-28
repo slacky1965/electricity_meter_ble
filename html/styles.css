@@ -1,0 +1,166 @@
+/* basic sytles */
+
+body {
+  font-family: Arial, 'Open Sans', sans-serif;
+  color: #204056;
+  font-size: 12px;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 400;
+  text-align: center;
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+
+hr {
+	height: 10px;
+	border: 0;
+	box-shadow: 0 10px 10px -10px #8c8b8b inset;
+}
+
+span#info {
+  font-style: italic;
+}
+
+.button, [type='button'] {
+  background-color: #1a73e8; 
+  border: none;
+  border-radius: 4px;
+  color: white;
+  padding: 8px 24px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 6px 6px;
+  cursor: pointer;
+  box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+}
+
+.button, [type='button'].ok {
+  background-color: #4CAF50; /* Green */
+  color: white;
+  border-color: #4CAF50;
+}
+
+.button, [type='button'].danger {
+  background-color: #f44336; /* Green */
+  color: white;
+  border-color: #f44336;
+}
+
+.button, [type='button']:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+input[type="checkbox"] + label {
+  margin-right: 8px;
+}
+
+#logs {
+	display: flex;
+}
+
+/*#logs:first-child {
+	margin-right: 0.5em;	
+}*/
+
+.log {
+	font-size: smaller;
+	overflow: auto;
+	height: 140px;
+  	background-color: #f0f0f0;
+  	border-radius: 0.75em;
+  	display: block;
+  	margin: 0.5em;
+  	padding: 0.5em;
+  	white-space: pre-wrap;
+}
+
+.log-container {
+	flex: 1;
+}
+
+#log {
+	margin-right: 0.5em;	
+}
+
+#status:empty, #log:empty, #logmcu:empty, #content:empty {
+  display: none;
+}
+
+div#div_v {
+	height:400px;
+  margin-top: 16px;
+	margin-bottom: 16px;
+}
+
+div#labdiv {
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+
+/*div#log {
+  padding: 12px;
+  font-style: italic;
+  font-size: 16px;
+}*/
+
+div#MAC {
+  font-style: italic;
+  margin: 8px;
+}
+
+div#percent {
+  font-style: italic;
+  font-size: 14px;
+  text-align: center;
+  background-color: #eef6fc;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin-top: 6px;
+}
+
+div#tempHumiData{
+  text-align: center;
+  background-color: #eef6fc;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+input {
+  padding: 4px;
+  margin: 4px;
+}
+
+select {
+  padding: 4px;
+}
+
+table {
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 14px;
+	border-collapse: collapse;
+	text-align: center;
+	width: 100%;
+}
+
+th {
+	background: #1a73e8; /*#AFCDE7;*/
+	color: white;
+	padding: 10px 20px;
+}
+
+th, td {
+	border-style: solid;
+	border-width: 0 1px 1px 0;
+	border-color: white;
+}
+
+td {
+	background: #f0f0f0;/*#D8E6F3;*/
+}
+
