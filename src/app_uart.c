@@ -72,7 +72,7 @@ size_t send_to_uart(const uint8_t *data, size_t len) {
     return 0;
 }
 
-size_t response_from_uart(uint8_t *data, uint32_t len) {
+size_t response_from_uart(uint8_t *data, size_t len) {
 
     if (len > UART_DATA_LEN) len = UART_DATA_LEN;
 
