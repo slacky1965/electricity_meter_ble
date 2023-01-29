@@ -94,22 +94,22 @@ static void send_command(cmd_t command) {
 
 static void response_meter(cmd_t command) {
 
-    uint8_t buff[128] = {0};
-    size_t data_len = get_data_len_from_uart();
+    uint8_t buff[188] = {0};
+    size_t data_len, residue, len, load_size = 0;
 
     memset(&response_pkt, 0, sizeof(response_pkt));
 
-    uint8_t len;
-    uint8_t load_size = 0; // = sizeof(response_header_t);
+    data_len = residue = get_data_len_from_uart();
 
     while (1) {
-        len = response_from_uart(buff+load_size, data_len);
+        len = response_from_uart(buff+load_size, residue);
         if (len == -1) {
             return;
         } else if (len == 0) {
             break;
-        } else if (len < data_len) {
+        } else if (len < residue) {
             load_size += len;
+            residue -= len;
         } else {
             load_size += len;
             break;
@@ -119,8 +119,9 @@ static void response_meter(cmd_t command) {
     if (load_size == data_len) {
         if (buff[0] == START && buff[1] == BOUNDARY && buff[data_len-1] == BOUNDARY && buff[8] == command) {
             memcpy(&response_pkt, buff, sizeof(response_header_t));
-            memcpy(response_pkt.response_data, &buff[load_size-(response_pkt.head.data_len+2)], response_pkt.head.data_len+2);
-            response_pkt.pkt_len = sizeof(response_header_t)+response_pkt.head.data_len+2;
+            len = response_pkt.head.data_len+2;
+            memcpy(response_pkt.response_data, &buff[load_size-len], len);
+            response_pkt.pkt_len = sizeof(response_header_t)+len;
         }
     }
 }
