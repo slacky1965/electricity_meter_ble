@@ -94,7 +94,7 @@ static void send_command(cmd_t command) {
 
 static void response_meter(cmd_t command) {
 
-    uint8_t buff[188] = {0};
+    uint8_t buff[UART_DATA_LEN] = {0};
     size_t data_len, residue, len, load_size = 0;
 
     memset(&response_pkt, 0, sizeof(response_pkt));
