@@ -81,6 +81,7 @@ static void send_command(cmd_t command) {
 
     set_command(command);
 
+    /* three attempts to send to uart */
     for (uint8_t attempt = 0; attempt < 3; attempt++) {
         len = send_to_uart((uint8_t*)&request_pkt, request_pkt.pkt_len);
         if (len == request_pkt.pkt_len) {
@@ -97,6 +98,10 @@ static void send_command(cmd_t command) {
         } else {
             request_pkt.load_len = 0;
         }
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+        printf("Attempt to send data to uart: %u\r\n", attempt+1);
+#endif
+        sleep_ms(100);
     }
 
     if (request_pkt.load_len == 0) {
@@ -115,7 +120,7 @@ static pkt_err_t response_meter(cmd_t command) {
     memset(&response_pkt, 0, sizeof(response_pkt));
 
 
-
+    /* three attempts to read from uart */
     for (uint8_t attempt = 0; attempt < 3; attempt ++) {
         data_len = get_data_len_from_uart();
         load_size = 0;
@@ -148,16 +153,60 @@ static pkt_err_t response_meter(cmd_t command) {
         sleep_ms(100);
     }
 
-    if (load_size && load_size == data_len) {
-        if (*buff == START && *(buff+1) == BOUNDARY && *(buff+load_size-1) == BOUNDARY && *(buff+8) == command) {
-            memcpy(&response_pkt, buff, sizeof(response_header_t));
-            len = response_pkt.head.data_len+2;
-            memcpy(response_pkt.response_data, buff+(load_size-len), len);
-            response_pkt.pkt_len = sizeof(response_header_t)+len;
-            pkt_err_no = PKT_OK;
+    if (load_size) {
+        if (load_size == data_len) {
+            if (*buff == START && *(buff+1) == BOUNDARY && *(buff+load_size-1) == BOUNDARY) {
+                uint16_t addr = buff[7];
+                addr <<= 8;
+                addr |= buff[6];
+                if (addr == config.meter.address) {
+                    if (*(buff+8) == command) {
+                        memcpy(&response_pkt, buff, sizeof(response_header_t));
+                        len = response_pkt.head.data_len+2;
+                        memcpy(response_pkt.response_data, buff+(load_size-len), len);
+                        response_pkt.pkt_len = sizeof(response_header_t)+len;
+                        pkt_err_no = PKT_OK;
+                    } else {
+                        pkt_err_no = PKT_ERR_DIFFERENT_COMMAND;
+                    }
+                } else {
+                    pkt_err_no = PKT_ERR_ADDRESS;
+                }
+            } else {
+                pkt_err_no = PKT_ERR_UNKNOWN_FORMAT;
+            }
+        } else {
+            pkt_err_no = PKT_ERR_INCOMPLETE;
         }
     }
 
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+    switch (pkt_err_no) {
+        case PKT_ERR_TIMEOUT:
+            printf("Response timed out\r\n");
+            break;
+        case PKT_ERR_UNKNOWN_FORMAT:
+            printf("Unknown response format\r\n");
+            break;
+        case PKT_ERR_DIFFERENT_COMMAND:
+            printf("Request and response command are different\r\n");
+            break;
+        case PKT_ERR_INCOMPLETE:
+            printf("Not a complete response\r\n");
+            break;
+        case PKT_ERR_ADDRESS:
+            printf("Invalid device address\r\n");
+            break;
+        case PKT_ERR_CRC:
+            printf("Wrong CRC\r\n");
+            break;
+        case PKT_ERR_UART:
+            printf("UART is busy\r\n");
+            break;
+        default:
+            break;
+    }
+#endif
     return pkt_err_no;
 }
 
@@ -182,7 +231,7 @@ uint8_t first_start_data() {
 
     if (pkt) {
         first_reponse = (first_meter_data_t*)pkt;
-        if (first_reponse->addr == config.meter.address) {
+//        if (first_reponse->addr == config.meter.address) {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             uint8_t *data = (uint8_t*)pkt;
             printf("response first start: 0x");
@@ -192,7 +241,7 @@ uint8_t first_start_data() {
             printf("\r\n");
 #endif
             return true;
-        }
+//        }
     }
 
     return false;
