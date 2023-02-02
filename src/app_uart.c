@@ -37,7 +37,7 @@ void app_uart_init()
 
 }
 
-void app_uart_irq_proc() {
+_attribute_ram_code_ void app_uart_irq_proc() {
 
     unsigned char uart_dma_irqsrc;
     //1. UART irq
@@ -56,7 +56,7 @@ void app_uart_irq_proc() {
 
 }
 
-size_t send_to_uart(const uint8_t *data, size_t len) {
+_attribute_ram_code_ size_t send_to_uart(const uint8_t *data, size_t len) {
 
     if (len > UART_DATA_LEN) len = UART_DATA_LEN;
 
@@ -73,7 +73,7 @@ size_t send_to_uart(const uint8_t *data, size_t len) {
     return 0;
 }
 
-size_t response_from_uart(uint8_t *data, size_t len) {
+_attribute_ram_code_ size_t response_from_uart(uint8_t *data, size_t len) {
 
     if (len > UART_DATA_LEN) len = UART_DATA_LEN;
 
@@ -98,7 +98,10 @@ size_t response_from_uart(uint8_t *data, size_t len) {
     return 0;
 }
 
-size_t get_data_len_from_uart() {
+_attribute_ram_code_ size_t get_data_len_from_uart() {
     return rec_buff.dma_len;
 }
 
+_attribute_ram_code_ void flush_uart_buff() {
+    memset(&rec_buff, 0, sizeof(uart_data_t));
+}
