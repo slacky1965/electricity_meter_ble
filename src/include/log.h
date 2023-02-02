@@ -3,7 +3,7 @@
 
 #define LOG_ID        0x78
 #define LOG_STR_SIZE  13              /* all 16 bytes. 1 byte id, 1 byte pid, 1 byte debug_enable. 16-3=13 bytes */
-#define LOG_BUFF_SIZE 4096            /* size ring buffer  */
+#define LOG_BUFF_SIZE 1024            /* size ring buffer  */
 #define LOG_BUFF_MASK LOG_BUFF_SIZE-1 /* mask ring buffer  */
 
 typedef struct __attribute__((packed)) _log_notify_t {

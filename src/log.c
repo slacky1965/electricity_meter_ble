@@ -80,13 +80,12 @@ _attribute_ram_code_ void set_log_str() {
 void init_log() {
     log_notify.id = LOG_ID;
     log_notify.pid = 1;
-    log_buff_clear();
 #if UART_PRINT_DEBUG_ENABLE
     log_notify.debug_enabled = ON;
 #else
     log_notify.debug_enabled = OFF;
 #endif /* UART_PRINT_DEBUG_ENABLE */
-//    send_log_enable = false;
+    send_log_enable = false;
 }
 
 #if 1
@@ -140,7 +139,9 @@ int uart_putc(char byte) //GPIO simulate uart print func
 
 int putchar(int c) {
 #if UART_PRINT_DEBUG_ENABLE
-    log_write((uint8_t)c);
+    if ((blc_ll_getCurrentState() & BLS_LINK_STATE_CONN) && send_log_enable) {
+        log_write((uint8_t)c);
+    }
     return uart_putc((char)c);
 //    return c;
 

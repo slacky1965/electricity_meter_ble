@@ -152,6 +152,8 @@ _attribute_ram_code_ void suspend_exit_cb (uint8_t e, uint8_t *p, int n)
 
 void ble_connect_cb(uint8_t e, uint8_t *p, int n) {
 
+    log_buff_clear();
+
 #if UART_PRINT_DEBUG_ENABLE
     printf("Connect\r\n");
 #endif /* UART_PRINT_DEBUG_ENABLE */
