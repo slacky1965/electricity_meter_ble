@@ -299,7 +299,7 @@ _attribute_ram_code_ static package_t *get_pkt_data(command_t command) {
     return NULL;
 }
 
-uint8_t first_start_data() {
+_attribute_ram_code_ uint8_t first_start_data() {
 
     first_meter_data_t *first_reponse;
     package_t          *pkt;
@@ -322,7 +322,7 @@ uint8_t first_start_data() {
     return false;
 }
 
-void get_current_data() {
+_attribute_ram_code_ void get_current_data() {
 
     current_meter_data_t *current_response;
     package_t            *pkt;
@@ -370,7 +370,7 @@ void get_current_data() {
     }
 }
 
-void get_amps_data() {
+_attribute_ram_code_ void get_amps_data() {
 
     amps_meter_data_t *amps_response;
     package_t         *pkt;
@@ -391,7 +391,7 @@ void get_amps_data() {
     }
 }
 
-void get_voltage_data() {
+_attribute_ram_code_ void get_voltage_data() {
 
     volts_meter_data_t *volts_response;
     package_t          *pkt;
@@ -422,7 +422,7 @@ void get_voltage_data() {
     }
 }
 
-void get_power_data() {
+_attribute_ram_code_ void get_power_data() {
 
     power_meter_data_t *power_response;
     package_t          *pkt;
@@ -454,6 +454,7 @@ void get_power_data() {
 
 _attribute_ram_code_ void measure_meter() {
 
+    flush_uart_buff();
 
     if (first_start_data()) {
         get_current_data();
@@ -465,8 +466,6 @@ _attribute_ram_code_ void measure_meter() {
     }
 
 }
-
-
 
 #endif
 
