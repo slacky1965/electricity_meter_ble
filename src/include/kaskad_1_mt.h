@@ -10,12 +10,12 @@ typedef enum _command_t {
 } command_t;
 
 typedef struct __attribute__((packed)) _package_header_t {
-    uint8_t  params_len;        /* bit 7 6 5 4 3 2 1 0                                                      */
-    uint8_t  reserved;          /*     | | | --------- 0-4 bits - data lenght. 0x1f                         */
-    uint16_t address_to;        /*     | | ----------- 1 request to the device, 0 response from the device  */
-    uint16_t address_from;      /*     | ------------- 1 sufficient computing power, 0 weak computing power */
-    uint8_t  command;           /*     --------------- 1 crypted, 0 non crypted                             */
-    uint32_t password_status;
+    uint8_t  params_len;        /* bit 7 6 5 4 3 2 1 0  params_len                                          */
+    uint8_t  reserved;          /*     | | | | | | | |                                                      */
+    uint16_t address_to;        /*     | | | --------- 0-4 bits - data lenght. 0x1f                         */
+    uint16_t address_from;      /*     | | ----------- 1 request to the device, 0 response from the device  */
+    uint8_t  command;           /*     | ------------- 1 sufficient computing power, 0 weak computing power */
+    uint32_t password_status;   /*     --------------- 1 crypted, 0 non crypted                             */
 } package_header_t;
 
 
