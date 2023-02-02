@@ -232,21 +232,25 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
         if (load_size == data_len) {
             if (*package_buff == START && *(package_buff+1) == BOUNDARY && *(package_buff+load_size-1) == BOUNDARY) {
                 len = byte_unstuffing(load_size);
-                response_pkt.pkt_len = len;
-                uint8_t crc = checksum((uint8_t*)&response_pkt, response_pkt.pkt_len);
+                if (len) {
+                    response_pkt.pkt_len = len;
+                    uint8_t crc = checksum((uint8_t*)&response_pkt, response_pkt.pkt_len);
 
-                if (crc == response_pkt.data[(response_pkt.header.params_len & 0x1f)]) {
-                    if (response_pkt.header.address_from == config.meter.address) {
-                        if (response_pkt.header.command == command) {
-                            pkt_error_no = PKT_OK;
+                    if (crc == response_pkt.data[(response_pkt.header.params_len & 0x1f)]) {
+                        if (response_pkt.header.address_from == config.meter.address) {
+                            if (response_pkt.header.command == command) {
+                                pkt_error_no = PKT_OK;
+                            } else {
+                                pkt_error_no = PKT_ERR_DIFFERENT_COMMAND;
+                            }
                         } else {
-                            pkt_error_no = PKT_ERR_DIFFERENT_COMMAND;
+                            pkt_error_no = PKT_ERR_ADDRESS;
                         }
                     } else {
-                        pkt_error_no = PKT_ERR_ADDRESS;
+                        pkt_error_no = PKT_ERR_CRC;
                     }
                 } else {
-                    pkt_error_no = PKT_ERR_CRC;
+                    pkt_error_no = PKT_ERR_UNSTUFFING;
                 }
             } else {
                 pkt_error_no = PKT_ERR_UNKNOWN_FORMAT;
@@ -269,6 +273,9 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
             break;
         case PKT_ERR_INCOMPLETE:
             printf("Not a complete response\r\n");
+            break;
+        case PKT_ERR_UNSTUFFING:
+            printf("Wrong unstuffing\r\n");
             break;
         case PKT_ERR_ADDRESS:
             printf("Invalid device address\r\n");
