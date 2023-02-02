@@ -1,7 +1,7 @@
 #ifndef SRC_INCLUDE_DEVICE_H_
 #define SRC_INCLUDE_DEVICE_H_
 
-typedef enum _pkt_err_t {
+typedef enum _pkt_error_t {
     PKT_OK  = 0,
     PKT_ERR_TIMEOUT,
     PKT_ERR_UNKNOWN_FORMAT,
@@ -10,7 +10,7 @@ typedef enum _pkt_err_t {
     PKT_ERR_ADDRESS,
     PKT_ERR_CRC,
     PKT_ERR_UART
-} pkt_err_t;
+} pkt_error_t;
 
 #if (ELECTRICITY_TYPE == KASKAD_1_MT)
 #include "kaskad_1_mt.h"
