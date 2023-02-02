@@ -217,7 +217,7 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
                 }
                 attempt = 3;
                 break;
-            } else if (len < data_len-load_size) {
+            } else if (len < (data_len-load_size)) {
                 load_size += len;
             } else {
                 load_size += len;
