@@ -8,6 +8,7 @@
 _attribute_data_retention_ uart_data_t rec_buff = {0,  {0, } };
 _attribute_data_retention_ uart_data_t trans_buff = {0,   {0, } };
 
+
 void app_uart_init()
 {
     //note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
