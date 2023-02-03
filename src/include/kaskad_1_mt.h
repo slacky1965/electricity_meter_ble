@@ -4,9 +4,11 @@
 typedef enum _command_t {
     cmd_open_channel        = 0x01,
     cmd_current_data        = 0x05,
-    cmd_volts_data          = 0x29,
-    cmd_amps_data           = 0x2c,
-    cmd_power_data          = 0x2d
+    cmd_volts_data          = 0x0129,   /* command 0x29, sub command 0x01 */
+    cmd_amps_data           = 0x012c,
+    cmd_power_data          = 0x2d,
+    cmd_serial_number       = 0x010a,
+    cmd_date_release        = 0x020a
 } command_t;
 
 typedef struct __attribute__((packed)) _package_header_t {
@@ -83,5 +85,15 @@ typedef struct __attribute__((packed)) _power_meter_data_t {
     uint8_t          crc;
     uint8_t          stop;
 } power_meter_data_t;
+
+typedef struct __attribute__((packed)) _data31_meter_data_t {
+    uint8_t          start;
+    uint8_t          boundary;
+    package_header_t header;
+    uint8_t          sub_command;
+    uint8_t          data[30];      /* data31 -> data[30] + sub_command */
+    uint8_t          crc;
+    uint8_t          stop;
+} data31_meter_data_t;
 
 #endif /* SRC_INCLUDE_KASKAD_1_MT_H_ */

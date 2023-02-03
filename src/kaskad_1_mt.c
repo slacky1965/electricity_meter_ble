@@ -17,9 +17,12 @@
 #define STUFF_55    0x11
 #define STUFF_73    0x22
 
-_attribute_data_retention_ package_t request_pkt;
-_attribute_data_retention_ package_t response_pkt;
-_attribute_data_retention_ uint8_t   package_buff[UART_DATA_LEN*2];
+_attribute_data_retention_ static package_t request_pkt;
+_attribute_data_retention_ static package_t response_pkt;
+_attribute_data_retention_ static uint8_t   package_buff[UART_DATA_LEN*2];
+_attribute_data_retention_ static uint8_t   serial_number[30] = {0};
+_attribute_data_retention_ static uint8_t   date_release[30] = {0};
+_attribute_data_retention_ static uint8_t   first_start = true;
 _attribute_data_retention_ static pkt_error_t pkt_error_no;
 
 static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
@@ -48,10 +51,10 @@ _attribute_ram_code_ static void set_command(command_t command) {
 
     request_pkt.start = START;
     request_pkt.boundary = BOUNDARY;
-    request_pkt.header.params_len = 0b00100000;
+    request_pkt.header.params_len = 0b00100000; // 0x20 to device
     request_pkt.header.address_to = config.meter.address; // = 20109;
     request_pkt.header.address_from = PROG_ADDR;
-    request_pkt.header.command = command;
+    request_pkt.header.command = command & 0xff;
     request_pkt.header.password_status = PASSWORD;
 
     switch (command) {
@@ -62,11 +65,14 @@ _attribute_ram_code_ static void set_command(command_t command) {
             request_pkt.data[0] = checksum((uint8_t*)&request_pkt, request_pkt.pkt_len);
             request_pkt.data[1] = BOUNDARY;
             break;
+            break;
         case cmd_amps_data:
         case cmd_volts_data:
+        case cmd_serial_number:
+        case cmd_date_release:
             request_pkt.header.params_len |= 0x01;
             request_pkt.pkt_len = 2 + sizeof(package_header_t) + 3;
-            request_pkt.data[0] = 0x01;
+            request_pkt.data[0] = (command >> 8) & 0xff;   // sub command
             request_pkt.data[1] = checksum((uint8_t*)&request_pkt, request_pkt.pkt_len);
             request_pkt.data[2] = BOUNDARY;
             break;
@@ -88,7 +94,7 @@ _attribute_ram_code_ static size_t byte_stuffing() {
     *(receiver++) = *(source++);
     len++;
 
-    for (int i = 0; i < (request_pkt.pkt_len-4); i++) {
+    for (int i = 0; i < (request_pkt.pkt_len-3); i++) {
         if (*source == BOUNDARY) {
             *(receiver++) = START;
             len++;
@@ -105,8 +111,6 @@ _attribute_ram_code_ static size_t byte_stuffing() {
         len++;
     }
 
-    *(receiver++) = *(source++);
-    len++;
     *(receiver) = *(source);
     len++;
 
@@ -124,7 +128,7 @@ _attribute_ram_code_ static size_t byte_unstuffing(uint8_t load_len) {
     *(receiver++) = *(source++);
     len++;
 
-    for (int i = 0; i < (load_len-4); i++) {
+    for (int i = 0; i < (load_len-3); i++) {
         if (*source == START) {
             source++;
             len--;
@@ -144,8 +148,6 @@ _attribute_ram_code_ static size_t byte_unstuffing(uint8_t load_len) {
         len++;
     }
 
-    *(receiver++) = *(source++);
-    len++;
     *(receiver) = *(source);
     len++;
 
@@ -238,7 +240,7 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
 
                     if (crc == response_pkt.data[(response_pkt.header.params_len & 0x1f)]) {
                         if (response_pkt.header.address_from == config.meter.address) {
-                            if (response_pkt.header.command == command) {
+                            if (response_pkt.header.command == (command & 0xff)) {
                                 pkt_error_no = PKT_OK;
                             } else {
                                 pkt_error_no = PKT_ERR_DIFFERENT_COMMAND;
@@ -437,9 +439,9 @@ _attribute_ram_code_ void get_power_data() {
     pkt = get_pkt_data(cmd_power_data);
 
     if (pkt) {
-        power_response = (power_meter_data_t*)&response_pkt;
+        power_response = (power_meter_data_t*)pkt;
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        uint8_t *data = (uint8_t*)&response_pkt;
+        uint8_t *data = (uint8_t*)pkt;
         printf("package power: 0x");
         for (int i = 0; i < response_pkt.pkt_len; i++) {
             printf("%02x", data[i]);
@@ -459,6 +461,67 @@ _attribute_ram_code_ void get_power_data() {
     }
 }
 
+_attribute_ram_code_ void get_serial_number_data() {
+    data31_meter_data_t *serial_number_response;
+    package_t           *pkt;
+
+    pkt = get_pkt_data(cmd_serial_number);
+
+    if (pkt) {
+        serial_number_response = (data31_meter_data_t*)pkt;
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+        uint8_t *data = (uint8_t*)pkt;
+        printf("package serial number: 0x");
+        for (int i = 0; i < response_pkt.pkt_len; i++) {
+            printf("%02x", data[i]);
+        }
+        printf("\r\n");
+
+        printf("Serial Number: ");
+        for (int i = 0; i < 31; i++) {
+            if (serial_number_response->data[i] != 0) {
+                printf("%c", serial_number_response->data[i]);
+                serial_number[i] = serial_number_response->data[i];
+            }
+            else break;
+        }
+        printf("\r\n");
+#endif
+    }
+
+}
+
+_attribute_ram_code_ void get_date_release_data() {
+    data31_meter_data_t *date_release_response;
+    package_t           *pkt;
+
+    pkt = get_pkt_data(cmd_date_release);
+
+    if (pkt) {
+        date_release_response = (data31_meter_data_t*)pkt;
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+        uint8_t *data = (uint8_t*)pkt;
+        printf("package date release: 0x");
+        for (int i = 0; i < response_pkt.pkt_len; i++) {
+            printf("%02x", data[i]);
+        }
+        printf("\r\n");
+
+        printf("Date of release: ");
+        for (int i = 0; i < 31; i++) {
+            if (date_release_response->data[i] != 0) {
+                printf("%c", date_release_response->data[i]);
+                date_release[i] = date_release_response->data[i];
+            }
+            else break;
+        }
+        printf("\r\n");
+#endif
+    }
+
+}
+
+
 _attribute_ram_code_ void measure_meter() {
 
     flush_uart_buff();
@@ -467,6 +530,12 @@ _attribute_ram_code_ void measure_meter() {
         get_current_data();
         get_voltage_data();
         get_power_data();
+        if (first_start) {
+            get_amps_data();
+            get_serial_number_data();
+            get_date_release_data();
+            first_start = false;
+        }
     }
     if (save_config) {
         write_config();
