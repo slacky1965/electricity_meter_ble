@@ -15,6 +15,11 @@ typedef struct __attribute__((packed)) _meter_t {
     uint32_t power;                   /* last value of power                */
     uint16_t voltage;                 /* last value of voltage              */
     uint16_t address;                 /* address of meter                   */
+    uint8_t  serial_number[30];       /* serial number                      */
+    uint8_t  sn_len;                  /* lenght of serial number            */
+    uint8_t  date_release[30];        /* date of release                    */
+    uint8_t  dr_len;                  /* lenght of release date             */
+//    uint8_t  test;
 } meter_t;
 
 /* must be no more than FLASH_PAGE_SIZE (256) bytes */

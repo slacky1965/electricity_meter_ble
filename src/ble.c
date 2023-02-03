@@ -19,6 +19,8 @@ _attribute_data_retention_ adv_crypt_tariff_t   adv_crypt_tariff_data;
 _attribute_data_retention_ adv_crypt_power_voltage_t  adv_crypt_pv_data;
 _attribute_data_retention_ main_notify_t        main_notify;
 _attribute_data_retention_ bindkey_notify_t     bindkey_notify;
+_attribute_data_retention_ serial_number_notify_t serial_number_notify;
+_attribute_data_retention_ date_release_notify_t date_release_notify;
 _attribute_data_retention_ uint8_t              mac_public[6], mac_random_static[6];
 _attribute_data_retention_ uint16_t             ble_connected = conn_disconnect;
 _attribute_data_retention_ uint8_t              ota_is_working = 0;
@@ -480,4 +482,12 @@ void ble_send_log() {
 
 void ble_send_bindkey() {
     bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (uint8_t *)&bindkey_notify, sizeof(bindkey_notify_t));
+}
+
+void ble_send_serila_number() {
+    bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (uint8_t *)&serial_number_notify, sizeof(serial_number_notify_t));
+}
+
+void ble_send_date_release() {
+    bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (uint8_t *)&date_release_notify, sizeof(date_release_notify_t));
 }

@@ -20,11 +20,8 @@ _attribute_ram_code_ static void clear_user_data() {
     }
 }
 
-static void init_default_config(uint32_t tariff_1,
-		                        uint32_t tariff_2,
-                                uint32_t tariff_3,
-								uint32_t power,
-								uint16_t voltage) {
+static void init_default_config() {
+
     memset(&config, 0, sizeof(config_t));
     config.size = sizeof(config_t);
     config.id = ID_CONFIG;
@@ -32,7 +29,6 @@ static void init_default_config(uint32_t tariff_1,
     config.meter.id = ID_METER;
     config.measurement_period = MEASUREMENT_PERIOD;
     default_config = true;
-    write_config();
 }
 
 _attribute_ram_code_ void init_config() {
@@ -47,7 +43,8 @@ _attribute_ram_code_ void init_config() {
         printf("No saved config! Init.\r\n");
 #endif /* UART_PRINT_DEBUG_ENABLE */
         clear_user_data();
-        init_default_config(0, 0, 0, 0, 0);
+        init_default_config();
+        write_config();
         return;
     }
 
@@ -80,22 +77,39 @@ _attribute_ram_code_ void init_config() {
                 /* save old count in new config */
 #if UART_PRINT_DEBUG_ENABLE
                 printf("Find old electricity meter data.\r\n");
-                printf("Tariff_1 - %u\r\n", config_curr.meter.tariff_1);
-                printf("Tariff_2 - %u\r\n", config_curr.meter.tariff_2);
-                printf("Tariff_3 - %u\r\n", config_curr.meter.tariff_3);
-                printf("Power    - %u\r\n", config_curr.meter.power);
-                printf("Voltage  - %u\r\n", config_curr.meter.voltage);
+                printf("Tariff_1        - %u\r\n", config_curr.meter.tariff_1);
+                printf("Tariff_2        - %u\r\n", config_curr.meter.tariff_2);
+                printf("Tariff_3        - %u\r\n", config_curr.meter.tariff_3);
+                printf("Power           - %u\r\n", config_curr.meter.power);
+                printf("Voltage         - %u\r\n", config_curr.meter.voltage);
+                printf("Device address  - %05u\r\n", config_curr.meter.address);
+                printf("Serial number   - %s\r\n", config_curr.meter.serial_number);
+                printf("Date of release - %s\r\n", config_curr.meter.date_release);
 #endif /* UART_PRINT_DEBUG_ENABLE */
-                init_default_config(config_curr.meter.tariff_1,
-                		            config_curr.meter.tariff_2,
-                                    config_curr.meter.tariff_3,
-									config_curr.meter.power,
-									config_curr.meter.voltage);
+
+                init_default_config();
+
+                config.meter.tariff_1 = config_curr.meter.tariff_1;
+                config.meter.tariff_2 = config_curr.meter.tariff_2;
+                config.meter.tariff_3 = config_curr.meter.tariff_3;
+                config.meter.power    = config_curr.meter.power;
+                config.meter.voltage  = config_curr.meter.voltage;
+                config.meter.address  = config_curr.meter.address;
+                if (config_curr.meter.sn_len) {
+                    memcpy(config.meter.serial_number, config_curr.meter.serial_number, config_curr.meter.sn_len);
+                    config.meter.sn_len = config_curr.meter.sn_len;
+                }
+                if (config_curr.meter.dr_len) {
+                    memcpy(config.meter.date_release, config_curr.meter.date_release, config_curr.meter.dr_len);
+                    config.meter.dr_len = config_curr.meter.dr_len;
+                }
+                write_config();
             } else {
 #if UART_PRINT_DEBUG_ENABLE
                 printf("Can't find old electricity meter data. New data = 0.\r\n");
 #endif /* UART_PRINT_DEBUG_ENABLE */
-                init_default_config(0, 0, 0, 0, 0);
+                init_default_config();
+                write_config();
             }
         } else {
             memcpy(&config, &config_curr, sizeof(config_t));
@@ -109,7 +123,8 @@ _attribute_ram_code_ void init_config() {
         printf("No active saved config! Reinit.\r\n");
 #endif /* UART_PRINT_DEBUG_ENABLE */
         clear_user_data();
-        init_default_config(0, 0, 0, 0, 0);
+        init_default_config();
+        write_config();
     }
 }
 

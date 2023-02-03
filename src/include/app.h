@@ -13,6 +13,8 @@ extern uint8_t voltage_notify;
 extern uint8_t mn_notify;
 extern uint8_t lg_notify;
 extern uint8_t bndk_notify;
+extern uint8_t sn_notify;
+extern uint8_t dr_notify;
 
 void user_init_normal(void);
 void user_init_deepRetn(void);

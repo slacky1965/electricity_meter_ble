@@ -33,6 +33,8 @@ _attribute_data_retention_ uint8_t tariff2_notify = NOTIFY_MAX;
 _attribute_data_retention_ uint8_t tariff3_notify = NOTIFY_MAX;
 _attribute_data_retention_ uint8_t power_notify   = NOTIFY_MAX;
 _attribute_data_retention_ uint8_t voltage_notify = NOTIFY_MAX;
+_attribute_data_retention_ uint8_t sn_notify      = NOTIFY_MAX;
+_attribute_data_retention_ uint8_t dr_notify      = NOTIFY_MAX;
 _attribute_data_retention_ uint8_t mn_notify      = 0;
 _attribute_data_retention_ uint8_t lg_notify      = 0;
 _attribute_data_retention_ uint8_t bndk_notify    = 0;
@@ -138,6 +140,12 @@ void main_loop (void) {
                     } else if (bndk_notify) {
                         ble_send_bindkey();
                         bndk_notify--;
+                    } else if (sn_notify) {
+                        ble_send_serila_number();
+                        sn_notify--;
+                    } else if (dr_notify) {
+                        ble_send_date_release();
+                        dr_notify--;
                     } else {
                         if (send_log_enable ) {
                             if (lg_notify) {

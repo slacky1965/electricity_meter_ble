@@ -68,6 +68,17 @@ typedef struct __attribute__((packed)) _bindkey_notify_t {
     uint8_t  bindkey[16];
 } bindkey_notify_t;
 
+typedef struct __attribute__((packed)) _serial_number_notify_t {
+    uint16_t id;
+    uint8_t  serial_number[16];
+} serial_number_notify_t;
+
+typedef struct __attribute__((packed)) _date_release_notify_t {
+    uint16_t id;
+    uint8_t  date_release[16];
+} date_release_notify_t;
+
+
 extern uint16_t ble_connected;
 extern uint8_t ota_is_working;
 extern uint8_t mac_public[6], mac_random_static[6];
@@ -78,6 +89,8 @@ extern adv_crypt_tariff_t adv_crypt_tariff_data;
 extern adv_crypt_power_voltage_t adv_crypt_pv_data;
 extern main_notify_t main_notify;
 extern bindkey_notify_t bindkey_notify;
+extern serial_number_notify_t serial_number_notify;
+extern date_release_notify_t date_release_notify;
 extern uint8_t tariff_changed;
 extern uint8_t pv_changed;
 extern uint8_t adv_counter;
@@ -96,5 +109,8 @@ void ble_send_voltage();
 void ble_send_main();
 void ble_send_log();
 void ble_send_bindkey();
+void ble_send_serila_number();
+void ble_send_date_release();
+
 
 #endif /* SRC_INCLUDE_BLE_H_ */

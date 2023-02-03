@@ -96,4 +96,8 @@ typedef struct __attribute__((packed)) _data31_meter_data_t {
     uint8_t          stop;
 } data31_meter_data_t;
 
+void get_serial_number_data();
+void get_date_release_data();
+
+
 #endif /* SRC_INCLUDE_KASKAD_1_MT_H_ */

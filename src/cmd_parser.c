@@ -40,6 +40,7 @@ void cmd_parser(void * p) {
         main_notify.address = config.meter.address;
         mn_notify = NOTIFY_MAX;
         ble_send_main();
+
         if (config.encrypted) {
             bindkey_notify.id = BINDKEY_NOTIFY_ID;
             memcpy(bindkey_notify.bindkey, config.bindkey, sizeof(config.bindkey));
@@ -47,6 +48,34 @@ void cmd_parser(void * p) {
         }
         send_log_enable = true;
         lg_notify = NOTIFY_MAX;
+
+        memset(&serial_number_notify, 0, sizeof(serial_number_notify_t));
+        serial_number_notify.id = SERIAL_NUMNER_ID;
+        /* check of serial number */
+        if (config.meter.sn_len == 0) {
+            get_serial_number_data();
+        }
+        if (config.meter.sn_len) {
+            memcpy(serial_number_notify.serial_number,
+                   config.meter.serial_number,
+                   config.meter.sn_len > sizeof(serial_number_notify.serial_number)?
+                   sizeof(serial_number_notify.serial_number):config.meter.sn_len);
+        }
+        sn_notify = NOTIFY_MAX;
+
+        memset(&date_release_notify, 0, sizeof(date_release_notify_t));
+        date_release_notify.id = DATE_RELEASE_ID;
+        /* check date of release */
+        if (config.meter.dr_len == 0) {
+            get_date_release_data();
+        }
+        if (config.meter.dr_len) {
+            memcpy(date_release_notify.date_release,
+                   config.meter.date_release,
+                   config.meter.dr_len > sizeof(date_release_notify.date_release)?
+                   sizeof(date_release_notify.date_release):config.meter.dr_len);
+        }
+        dr_notify = NOTIFY_MAX;
 #if UART_PRINT_DEBUG_ENABLE
         printf("Main notify start\r\n");
 #endif /* UART_PRINT_DEBUG_ENABLE */

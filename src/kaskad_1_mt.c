@@ -20,8 +20,6 @@
 _attribute_data_retention_ static package_t request_pkt;
 _attribute_data_retention_ static package_t response_pkt;
 _attribute_data_retention_ static uint8_t   package_buff[UART_DATA_LEN*2];
-_attribute_data_retention_ static uint8_t   serial_number[30] = {0};
-_attribute_data_retention_ static uint8_t   date_release[30] = {0};
 _attribute_data_retention_ static uint8_t   first_start = true;
 _attribute_data_retention_ static pkt_error_t pkt_error_no;
 
@@ -481,11 +479,20 @@ _attribute_ram_code_ void get_serial_number_data() {
         for (int i = 0; i < 31; i++) {
             if (serial_number_response->data[i] != 0) {
                 printf("%c", serial_number_response->data[i]);
-                serial_number[i] = serial_number_response->data[i];
+                config.meter.serial_number[i] = serial_number_response->data[i];
+                config.meter.sn_len++;
             }
             else break;
         }
         printf("\r\n");
+#else
+        for (int i = 0; i < 31; i++) {
+            if (serial_number_response->data[i] != 0) {
+                config.meter.serial_number[i] = serial_number_response->data[i];
+                config.meter.sn_len++;
+            }
+            else break;
+        }
 #endif
     }
 
@@ -511,11 +518,21 @@ _attribute_ram_code_ void get_date_release_data() {
         for (int i = 0; i < 31; i++) {
             if (date_release_response->data[i] != 0) {
                 printf("%c", date_release_response->data[i]);
-                date_release[i] = date_release_response->data[i];
+                config.meter.date_release[i] = date_release_response->data[i];
+                config.meter.dr_len++;
             }
             else break;
         }
         printf("\r\n");
+#else
+        for (int i = 0; i < 31; i++) {
+            if (date_release_response->data[i] != 0) {
+                printf("%c", date_release_response->data[i]);
+                config.meter.date_release[i] = date_release_response->data[i];
+                config.meter.dr_len++;
+            }
+            else break;
+        }
 #endif
     }
 
@@ -540,7 +557,6 @@ _attribute_ram_code_ void measure_meter() {
     if (save_config) {
         write_config();
     }
-
 }
 
 #endif
