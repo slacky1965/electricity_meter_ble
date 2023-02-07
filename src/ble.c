@@ -285,7 +285,7 @@ _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
             pv_changed = false;
             adv_pv_data.pv.pid++;
             from32to24(adv_pv_data.pv.power, config.meter.power);
-            adv_pv_data.pv.voltage = config.meter.voltage;
+            adv_pv_data.pv.voltage = config.meter.voltage/10;
             if (config.encrypted) {
                 bthome_encrypt_pv_data_beacon();
             }

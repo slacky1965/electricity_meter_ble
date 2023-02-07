@@ -23,7 +23,7 @@ _attribute_data_retention_ static uint8_t   package_buff[PKT_BUFF_MAX_LEN];
 _attribute_data_retention_ static uint8_t   first_start = true;
 _attribute_data_retention_ static pkt_error_t pkt_error_no;
 
-static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
+_attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
   // skip 73 55 header (and 55 footer is beyond checksum anyway)
   const uint8_t* table = &src_buffer[2];
   const uint8_t packet_len = len - 4;
@@ -41,6 +41,29 @@ static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
   }
 
   return crc;
+}
+
+_attribute_ram_code_ static uint32_t from24to32(const uint8_t *str) {
+
+    uint32_t value;
+
+    value = str[0] & 0xff;
+    value |= (str[1] << 8) & 0xff00;
+    value |= (str[2] << 16) & 0xff0000;
+
+    return value;
+}
+
+_attribute_ram_code_ static uint16_t divisor(const uint8_t division_factor) {
+
+    switch (division_factor & 0x03) {
+        case 0: return 1;
+        case 1: return 10;
+        case 2: return 100;
+        case 3: return 1000;
+    }
+
+    return 1;
 }
 
 _attribute_ram_code_ static void set_command(command_t command) {
@@ -309,81 +332,80 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
 _attribute_ram_code_ static package_t *get_pkt_data(command_t command) {
 
     send_command(command);
-    sleep_ms(250);
+    sleep_ms(200);
     if (request_pkt.load_len > 0) {
         if (response_meter(command) == PKT_OK) {
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+        uint8_t *data = (uint8_t*)&response_pkt;
+        printf("package power: 0x");
+        for (int i = 0; i < response_pkt.pkt_len; i++) {
+            printf("%02x", data[i]);
+        }
+        printf("\r\n");
+#endif
+
             return &response_pkt;
         }
     }
     return NULL;
 }
 
-_attribute_ram_code_ uint8_t first_start_data() {
+_attribute_ram_code_ uint8_t ping_start_data() {
 
-    first_meter_data_t *first_reponse;
-    package_t          *pkt;
+    package_t *pkt;
 
     pkt = get_pkt_data(cmd_open_channel);
 
     if (pkt) {
-        first_reponse = (first_meter_data_t*)pkt;
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        uint8_t *data = (uint8_t*)pkt;
-        printf("package first start: 0x");
-        for (int i = 0; i < response_pkt.pkt_len; i++) {
-            printf("%02x", data[i]);
-        }
-        printf("\r\n");
-#endif
         return true;
     }
 
     return false;
 }
 
-_attribute_ram_code_ void get_current_data() {
+_attribute_ram_code_ void get_tariffs_data() {
 
-    current_meter_data_t *current_response;
+    tariffs_meter_data_t *tariffs_response;
     package_t            *pkt;
 
     pkt = get_pkt_data(cmd_current_data);
 
     if (pkt) {
-        current_response = (current_meter_data_t*)pkt;
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        uint8_t *data = (uint8_t*)pkt;
-        printf("package current data: 0x");
-        for (int i = 0; i < response_pkt.pkt_len; i++) {
-            printf("%02x", data[i]);
-        }
-        printf("\r\n");
-#endif
+        tariffs_response = (tariffs_meter_data_t*)pkt->data;
 
-        if (config.meter.tariff_1 != (current_response->tariff_1)) {
-            config.meter.tariff_1 = current_response->tariff_1;
+        if (config.meter.tariff_1 != (tariffs_response->tariff_1)) {
+            config.meter.tariff_1 = tariffs_response->tariff_1;
             tariff_changed = true;
             tariff1_notify = NOTIFY_MAX;
             save_config = true;
         }
 
-        if (config.meter.tariff_2 != (current_response->tariff_2)) {
-            config.meter.tariff_2 = current_response->tariff_2;
+        if (config.meter.tariff_2 != (tariffs_response->tariff_2)) {
+            config.meter.tariff_2 = tariffs_response->tariff_2;
             tariff_changed = true;
             tariff2_notify = NOTIFY_MAX;
             save_config = true;
         }
 
-        if (config.meter.tariff_3 != (current_response->tariff_3)) {
-            config.meter.tariff_3 = current_response->tariff_3;
+        if (config.meter.tariff_3 != (tariffs_response->tariff_3)) {
+            config.meter.tariff_3 = tariffs_response->tariff_3;
             tariff_changed = true;
             tariff3_notify = NOTIFY_MAX;
             save_config = true;
         }
 
+        if (config.meter.division_factor != (tariffs_response->byte_cfg & 0x03)) {
+            config.meter.division_factor = tariffs_response->byte_cfg & 0x03;
+            save_config = true;
+        }
+
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("tariff1: %u,%u\r\n", config.meter.tariff_1/100, config.meter.tariff_1%100);
-        printf("tariff2: %u,%u\r\n", config.meter.tariff_2/100, config.meter.tariff_2%100);
-        printf("tariff3: %u,%u\r\n", config.meter.tariff_3/100, config.meter.tariff_3%100);
+        printf("tariff1: %u,%u\r\n", config.meter.tariff_1 / divisor(config.meter.division_factor),
+                                     config.meter.tariff_1 % divisor(config.meter.division_factor));
+        printf("tariff2: %u,%u\r\n", config.meter.tariff_2 / divisor(config.meter.division_factor),
+                                     config.meter.tariff_2 % divisor(config.meter.division_factor));
+        printf("tariff3: %u,%u\r\n", config.meter.tariff_3 / divisor(config.meter.division_factor),
+                                     config.meter.tariff_3 % divisor(config.meter.division_factor));
 #endif
 
     }
@@ -398,20 +420,13 @@ _attribute_ram_code_ void get_amps_data() {
     pkt = get_pkt_data(cmd_amps_data);
 
     if (pkt) {
-        amps_response = (amps_meter_data_t*)pkt;
+        amps_response = (amps_meter_data_t*)pkt->data;
+        amps = from24to32(amps_response->amps);
+        if ((pkt->header.params_len & 0x1f) == 3) {
+            amps &= 0xffff;
+        }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        uint8_t *data = (uint8_t*)pkt;
-        printf("package amps: 0x");
-        for (int i = 0; i < response_pkt.pkt_len; i++) {
-            printf("%02x", data[i]);
-        }
-        printf("\r\n");
-        amps = amps_response->data[0];
-        amps |= (amps_response->data[1] << 8) & 0xff00;
-        if (amps_response->header.params_len == 4) {
-            amps |= (amps_response->data[2] << 16) & 0xff0000;
-        }
-        printf("amps: %u,%02u\r\n", amps/1000, amps%1000);
+        printf("phase: %u, amps: %u,%02u\r\n", amps_response->phase_num, amps/1000, amps%1000);
 #endif
     }
 }
@@ -424,24 +439,16 @@ _attribute_ram_code_ void get_voltage_data() {
     pkt = get_pkt_data(cmd_volts_data);
 
     if (pkt) {
-        volts_response = (volts_meter_data_t*)pkt;
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        uint8_t *data = (uint8_t*)pkt;
-        printf("package volts: 0x");
-        for (int i = 0; i < response_pkt.pkt_len; i++) {
-            printf("%02x", data[i]);
-        }
-        printf("\r\n");
-#endif
+        volts_response = (volts_meter_data_t*)pkt->data;
         if (config.meter.voltage != volts_response->volts) {
-            config.meter.voltage = volts_response->volts/10;
+            config.meter.voltage = volts_response->volts;
             pv_changed = true;
             voltage_notify = NOTIFY_MAX;
             save_config = true;
         }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("volts: %u,%02u\r\n", volts_response->volts/100, volts_response->volts%100);
+        printf("phase: %u, volts: %u,%02u\r\n", volts_response->phase_num, volts_response->volts/100, volts_response->volts%100);
 #endif
 
     }
@@ -451,28 +458,28 @@ _attribute_ram_code_ void get_power_data() {
 
     power_meter_data_t *power_response;
     package_t          *pkt;
+    uint32_t            power;
 
     pkt = get_pkt_data(cmd_power_data);
 
     if (pkt) {
-        power_response = (power_meter_data_t*)pkt;
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        uint8_t *data = (uint8_t*)pkt;
-        printf("package power: 0x");
-        for (int i = 0; i < response_pkt.pkt_len; i++) {
-            printf("%02x", data[i]);
-        }
-        printf("\r\n");
-#endif
-        if (config.meter.power != power_response->power) {
-            config.meter.power = power_response->power;
+        power_response = (power_meter_data_t*)pkt->data;
+        power = from24to32(power_response->power);
+        if (config.meter.power != power) {
+            config.meter.power = power;
             pv_changed = true;
             power_notify = NOTIFY_MAX;
             save_config = true;
         }
 
+        if (config.meter.division_factor != (power_response->byte_cfg & 0x03)) {
+            config.meter.division_factor = power_response->byte_cfg & 0x03;
+            save_config = true;
+        }
+
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("power: %u,%02u\r\n", power_response->power/100, power_response->power%100);
+        printf("power: %u,%02u\r\n", power / divisor(config.meter.division_factor),
+                                     power % divisor(config.meter.division_factor));
 #endif
     }
 }
@@ -486,13 +493,6 @@ _attribute_ram_code_ void get_serial_number_data() {
     if (pkt) {
         serial_number_response = (data31_meter_data_t*)pkt;
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        uint8_t *data = (uint8_t*)pkt;
-        printf("package serial number: 0x");
-        for (int i = 0; i < response_pkt.pkt_len; i++) {
-            printf("%02x", data[i]);
-        }
-        printf("\r\n");
-
         printf("Serial Number: ");
         for (int i = 0; i < 31; i++) {
             if (serial_number_response->data[i] != 0) {
@@ -525,13 +525,6 @@ _attribute_ram_code_ void get_date_release_data() {
     if (pkt) {
         date_release_response = (data31_meter_data_t*)pkt;
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        uint8_t *data = (uint8_t*)pkt;
-        printf("package date release: 0x");
-        for (int i = 0; i < response_pkt.pkt_len; i++) {
-            printf("%02x", data[i]);
-        }
-        printf("\r\n");
-
         printf("Date of release: ");
         for (int i = 0; i < 31; i++) {
             if (date_release_response->data[i] != 0) {
@@ -561,16 +554,6 @@ void pkt_test(command_t command) {
     pkt = get_pkt_data(command);
 
     if (pkt) {
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        uint8_t *data = (uint8_t*) pkt;
-        printf("package test: 0x");
-        for (int i = 0; i < response_pkt.pkt_len; i++) {
-            printf("%02x", data[i]);
-        }
-        printf("\r\n");
-
-        printf("name device: %s\r\n", pkt->data);
-#endif
     } else {
         printf("pkt = NULL\r\n");
     }
@@ -578,8 +561,8 @@ void pkt_test(command_t command) {
 
 _attribute_ram_code_ void measure_meter() {
 
-    if (first_start_data()) {
-        get_current_data();
+    if (ping_start_data()) {
+        get_tariffs_data();
         get_voltage_data();
         get_power_data();
         if (first_start) {

@@ -30,62 +30,37 @@ typedef struct __attribute__((packed)) _package_t {
     uint8_t          start;
     uint8_t          boundary;
     package_header_t header;
-    uint8_t          data[64];
+    uint8_t          data[PKT_BUFF_MAX_LEN];
     uint8_t          pkt_len;
     uint8_t          load_len;
 } package_t;
 
-typedef struct __attribute__((packed)) _first_meter_data_t {
-    uint8_t          start;
-    uint8_t          boundary;
-    package_header_t header;
-    uint16_t         version;
-    uint16_t         addr;
-    uint8_t          crc;
-    uint8_t          stop;
-} first_meter_data_t;
-
-typedef struct __attribute__((packed)) _current_meter_data_t {
-    uint8_t          start;
-    uint8_t          boundary;
-    package_header_t header;
-    uint32_t         sum;
-    uint32_t         counter;
-    uint16_t         xz;
+typedef struct __attribute__((packed)) _tariffs_meter_data_t {
+    uint32_t         sum_tariffs;
+    uint8_t          byte_cfg;
+    uint8_t          division_factor;
+    uint8_t          role;
+    uint8_t          multiplication_factor[3];
     uint32_t         tariff_1;
     uint32_t         tariff_2;
     uint32_t         tariff_3;
     uint32_t         tariff_4;
-    uint8_t          crc;
-    uint8_t          stop;
-} current_meter_data_t;
+} tariffs_meter_data_t;
 
 typedef struct __attribute__((packed)) _amps_meter_data_t {
-    uint8_t          start;
-    uint8_t          boundary;
-    package_header_t header;
-    uint8_t          phase;     /* number of phase */
-    uint8_t          data[5];   /* value 2 or 3 bytes + crc + boundary */
+    uint8_t          phase_num; /* number of phase    */
+    uint8_t          amps[3];   /* value 2 or 3 bytes */
 } amps_meter_data_t;
 
 typedef struct __attribute__((packed)) _volts_meter_data_t {
-    uint8_t          start;
-    uint8_t          boundary;
-    package_header_t header;
-    uint8_t          sub_cmd;
+    uint8_t          phase_num;
     uint16_t         volts;
-    uint8_t          crc;
-    uint8_t          stop;
 } volts_meter_data_t;
 
 typedef struct __attribute__((packed)) _power_meter_data_t {
-    uint8_t          start;
-    uint8_t          boundary;
-    package_header_t header;
-    uint16_t         power;
-    uint8_t          xz[3];
-    uint8_t          crc;
-    uint8_t          stop;
+    uint8_t          power[3];
+    uint8_t          byte_cfg;
+    uint8_t          division_factor;
 } power_meter_data_t;
 
 typedef struct __attribute__((packed)) _data31_meter_data_t {
@@ -93,7 +68,7 @@ typedef struct __attribute__((packed)) _data31_meter_data_t {
     uint8_t          boundary;
     package_header_t header;
     uint8_t          sub_command;
-    uint8_t          data[30];      /* data31 -> data[30] + sub_command */
+    uint8_t          data[30];      /* data31 -> data[30] + sub_command = 31 */
     uint8_t          crc;
     uint8_t          stop;
 } data31_meter_data_t;

@@ -19,6 +19,7 @@ typedef struct __attribute__((packed)) _meter_t {
     uint8_t  sn_len;                  /* lenght of serial number            */
     uint8_t  date_release[30];        /* date of release                    */
     uint8_t  dr_len;                  /* lenght of release date             */
+    uint8_t  division_factor;         /* 00-0, 01-0.0, 10-0.00, 11-0.000    */
 //    uint8_t  test;
 } meter_t;
 
