@@ -81,6 +81,7 @@ void user_init_normal(void) {
     init_ble();
     update_interval  = 0; //clock_time();
     reset_wl_begin = false;
+    flush_buff_uart();
     app_uart_init();
     measure_meter();
 }

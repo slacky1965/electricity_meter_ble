@@ -7,10 +7,54 @@
 
 _attribute_data_retention_ uart_data_t rec_buff = {0,  {0, } };
 _attribute_data_retention_ uart_data_t trans_buff = {0,   {0, } };
+_attribute_data_retention_ uint8_t     uart_buff[UART_BUFF_SIZE];
+_attribute_data_retention_ uint16_t    uart_head, uart_tail;
 
+_attribute_ram_code_ uint8_t available_buff_uart() {
+    if (uart_head != uart_tail) {
+        return true;
+    }
+    return false;
+}
 
-void app_uart_init()
-{
+_attribute_ram_code_ static size_t get_queue_len_buff_uart() {
+   return (uart_head - uart_tail) & (UART_BUFF_MASK);
+}
+
+_attribute_ram_code_ static size_t get_freespace_buff_uart() {
+    return (sizeof(uart_buff)/sizeof(uart_buff[0]) - get_queue_len_buff_uart());
+}
+
+_attribute_ram_code_ void flush_buff_uart() {
+    uart_head = uart_tail = 0;
+    memset(uart_buff, 0, UART_BUFF_SIZE);
+}
+
+_attribute_ram_code_ uint8_t read_byte_from_buff_uart() {
+    uint8_t ch = uart_buff[uart_tail++];
+    uart_tail &= UART_BUFF_MASK;
+    return ch;
+
+}
+
+_attribute_ram_code_ static size_t write_bytes_to_buff_uart(uint8_t *data, size_t len) {
+
+    size_t free_space = get_freespace_buff_uart();
+    size_t put_len;
+
+    if (free_space >= len) put_len = len;
+    else put_len = free_space;
+
+    for (int i = 0; i < put_len; i++) {
+        uart_buff[uart_head++] = data[i];
+        uart_head &= UART_BUFF_MASK;
+    }
+
+    return put_len;
+}
+
+void app_uart_init() {
+
     //note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
     uart_recbuff_init( (unsigned char *)&rec_buff, sizeof(rec_buff));
 
@@ -39,7 +83,7 @@ void app_uart_init()
 
 _attribute_ram_code_ void app_uart_irq_proc() {
 
-    unsigned char uart_dma_irqsrc;
+    uint8_t uart_dma_irqsrc, write_len;
     //1. UART irq
     uart_dma_irqsrc = dma_chn_irq_status_get();///in function,interrupt flag have already been cleared,so need not to clear DMA interrupt flag here
 
@@ -48,6 +92,16 @@ _attribute_ram_code_ void app_uart_irq_proc() {
         dma_chn_irq_status_clr(FLD_DMA_CHN_UART_RX);
 
         //Received uart data in rec_buff, user can copy data here
+        write_len = write_bytes_to_buff_uart(rec_buff.data, rec_buff.dma_len);
+
+        if (write_len != 0) {
+            if (write_len == rec_buff.dma_len) {
+                rec_buff.dma_len = 0;
+            } else if (write_len < rec_buff.dma_len) {
+                memcpy(rec_buff.data, rec_buff.data+write_len, rec_buff.dma_len-write_len);
+                rec_buff.dma_len -= write_len;
+            }
+        }
 
     }
     if(uart_dma_irqsrc & FLD_DMA_CHN_UART_TX){
@@ -56,7 +110,7 @@ _attribute_ram_code_ void app_uart_irq_proc() {
 
 }
 
-_attribute_ram_code_ size_t send_to_uart(const uint8_t *data, size_t len) {
+_attribute_ram_code_ size_t write_bytes_to_uart(const uint8_t *data, size_t len) {
 
     if (len > UART_DATA_LEN) len = UART_DATA_LEN;
 
@@ -64,44 +118,9 @@ _attribute_ram_code_ size_t send_to_uart(const uint8_t *data, size_t len) {
     trans_buff.dma_len = len;
 
     if (uart_dma_send((uint8_t*)&trans_buff)) {
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("send bytes: %u\r\n", len);
-#endif
         return len;
     }
 
     return 0;
 }
 
-_attribute_ram_code_ size_t response_from_uart(uint8_t *data, size_t len) {
-
-    if (len > UART_DATA_LEN) len = UART_DATA_LEN;
-
-    if (rec_buff.dma_len) {
-        if (len  <= rec_buff.dma_len) {
-            memcpy(data, rec_buff.data, len);
-            if (len < rec_buff.dma_len) {
-                memcpy(rec_buff.data, rec_buff.data+len, rec_buff.dma_len - len);
-            }
-            rec_buff.dma_len -= len;
-        } else {
-            memcpy(data, rec_buff.data, rec_buff.dma_len);
-            len = rec_buff.dma_len;
-            rec_buff.dma_len = 0;
-        }
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("resp bytes: %u\r\n", len);
-#endif
-        return len;
-    }
-
-    return 0;
-}
-
-_attribute_ram_code_ size_t get_data_len_from_uart() {
-    return rec_buff.dma_len;
-}
-
-_attribute_ram_code_ void flush_uart_buff() {
-    memset(&rec_buff, 0, sizeof(uart_data_t));
-}
