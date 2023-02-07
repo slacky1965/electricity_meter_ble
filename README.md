@@ -30,3 +30,5 @@
 
 <img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/images/kaskad-1-mt.jpg" alt="kackad-1-mt"/>
 
+<img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/images/home_assistant.jpg" alt="home_assistant"/>
+
