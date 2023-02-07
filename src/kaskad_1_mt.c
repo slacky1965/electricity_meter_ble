@@ -231,7 +231,7 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
 
     for (uint8_t attempt = 0; attempt < 3; attempt ++) {
         load_size = 0;
-        while (available_buff_uart() && load_size <= PKT_BUFF_MAX_LEN) {
+        while (available_buff_uart() && load_size < PKT_BUFF_MAX_LEN) {
 
             ch = read_byte_from_buff_uart();
 
