@@ -54,7 +54,7 @@ _attribute_ram_code_ static uint32_t from24to32(const uint8_t *str) {
     return value;
 }
 
-_attribute_ram_code_ static uint16_t divisor(const uint8_t division_factor) {
+_attribute_ram_code_ uint16_t divisor(const uint8_t division_factor) {
 
     switch (division_factor & 0x03) {
         case 0: return 1;
@@ -338,7 +338,7 @@ _attribute_ram_code_ static package_t *get_pkt_data(command_t command) {
         if (response_meter(command) == PKT_OK) {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         uint8_t *data = (uint8_t*)&response_pkt;
-        printf("package power: 0x");
+        printf("response pkt: 0x");
         for (int i = 0; i < response_pkt.pkt_len; i++) {
             printf("%02x", data[i]);
         }
@@ -495,24 +495,25 @@ _attribute_ram_code_ void get_serial_number_data() {
         serial_number_response = (data31_meter_data_t*)pkt;
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Serial Number: ");
-        for (int i = 0; i < 31; i++) {
+        for (int i = 0; i < DATA_MAX_LEN; i++) {
             if (serial_number_response->data[i] != 0) {
                 printf("%c", serial_number_response->data[i]);
-                config.meter.serial_number[i] = serial_number_response->data[i];
-                config.meter.sn_len++;
             }
             else break;
         }
         printf("\r\n");
-#else
-        for (int i = 0; i < 31; i++) {
-            if (serial_number_response->data[i] != 0) {
-                config.meter.serial_number[i] = serial_number_response->data[i];
-                config.meter.sn_len++;
-            }
-            else break;
-        }
 #endif
+
+        if (memcmp(config.meter.serial_number, serial_number_response->data, DATA_MAX_LEN) != 0) {
+            config.meter.sn_len = 0;
+            for (int i = 0; i < DATA_MAX_LEN; i++) {
+                config.meter.serial_number[i] = serial_number_response->data[i];
+                if (serial_number_response->data[i] != 0) {
+                    config.meter.sn_len++;
+                }
+            }
+            sn_notify = NOTIFY_MAX;
+        }
     }
 
 }
@@ -530,22 +531,22 @@ _attribute_ram_code_ void get_date_release_data() {
         for (int i = 0; i < 31; i++) {
             if (date_release_response->data[i] != 0) {
                 printf("%c", date_release_response->data[i]);
-                config.meter.date_release[i] = date_release_response->data[i];
-                config.meter.dr_len++;
             }
             else break;
         }
         printf("\r\n");
-#else
-        for (int i = 0; i < 31; i++) {
-            if (date_release_response->data[i] != 0) {
-                printf("%c", date_release_response->data[i]);
-                config.meter.date_release[i] = date_release_response->data[i];
-                config.meter.dr_len++;
-            }
-            else break;
-        }
 #endif
+
+        if (memcpy(config.meter.date_release, date_release_response->data, DATA_MAX_LEN) != 0) {
+            config.meter.dr_len = 0;
+            for (int i = 0; i < DATA_MAX_LEN; i++) {
+                config.meter.date_release[i] = date_release_response->data[i];
+                if (date_release_response->data[i] != 0) {
+                    config.meter.dr_len++;
+                }
+            }
+            dr_notify = NOTIFY_MAX;
+        }
     }
 
 }

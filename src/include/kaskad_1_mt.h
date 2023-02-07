@@ -2,6 +2,7 @@
 #define SRC_INCLUDE_KASKAD_1_MT_H_
 
 #define PKT_BUFF_MAX_LEN     128        /* max len read from uart          */
+#define DATA_MAX_LEN         30
 
 typedef enum _command_t {
     cmd_open_channel         = 0x01,
@@ -68,13 +69,14 @@ typedef struct __attribute__((packed)) _data31_meter_data_t {
     uint8_t          boundary;
     package_header_t header;
     uint8_t          sub_command;
-    uint8_t          data[30];      /* data31 -> data[30] + sub_command = 31 */
+    uint8_t          data[DATA_MAX_LEN];    /* data31 -> data[30] + sub_command = 31 */
     uint8_t          crc;
     uint8_t          stop;
 } data31_meter_data_t;
 
 void get_serial_number_data();
 void get_date_release_data();
+uint16_t divisor(const uint8_t division_factor);
 
 
 #endif /* SRC_INCLUDE_KASKAD_1_MT_H_ */

@@ -2,11 +2,11 @@
 #include "tl_common.h"
 #include "stack/ble/ble.h"
 
+#include "cmd_parser.h"
 #include "cfg.h"
 #include "log.h"
 #include "ble.h"
 #include "app.h"
-#include "cmd_parser.h"
 #include "device.h"
 
 void cmd_parser(void * p) {
@@ -113,6 +113,33 @@ void cmd_parser(void * p) {
         if (len) config.meter.address |= ((in_data[len--] << 8) & 0xFF00);
         write_config();
         measure_meter();
+        memset(&serial_number_notify, 0, sizeof(serial_number_notify_t));
+        serial_number_notify.id = SERIAL_NUMNER_ID;
+        /* check of serial number */
+        if (config.meter.sn_len == 0) {
+            get_serial_number_data();
+        }
+        if (config.meter.sn_len) {
+            memcpy(serial_number_notify.serial_number,
+                   config.meter.serial_number,
+                   config.meter.sn_len > sizeof(serial_number_notify.serial_number)?
+                   sizeof(serial_number_notify.serial_number):config.meter.sn_len);
+        }
+        sn_notify = NOTIFY_MAX;
+
+        memset(&date_release_notify, 0, sizeof(date_release_notify_t));
+        date_release_notify.id = DATE_RELEASE_ID;
+        /* check date of release */
+        if (config.meter.dr_len == 0) {
+            get_date_release_data();
+        }
+        if (config.meter.dr_len) {
+            memcpy(date_release_notify.date_release,
+                   config.meter.date_release,
+                   config.meter.dr_len > sizeof(date_release_notify.date_release)?
+                   sizeof(date_release_notify.date_release):config.meter.dr_len);
+        }
+        dr_notify = NOTIFY_MAX;
 #if UART_PRINT_DEBUG_ENABLE
         printf("New device address: %u\r\n", config.meter.address);
 #endif /* UART_PRINT_DEBUG_ENABLE */
