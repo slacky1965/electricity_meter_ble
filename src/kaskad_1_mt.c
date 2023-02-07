@@ -237,7 +237,7 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
 
             if (load_size == 0) {
                 if (ch != START) {
-                    pkt_error_no = PKT_NO_PKT;
+                    pkt_error_no = PKT_ERR_NO_PKT;
                     continue;
                 }
             } else if (load_size == 1) {
@@ -301,6 +301,7 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
             printf("Response timed out\r\n");
             break;
         case PKT_ERR_UNKNOWN_FORMAT:
+        case PKT_ERR_NO_PKT:
             printf("Unknown response format\r\n");
             break;
         case PKT_ERR_DIFFERENT_COMMAND:

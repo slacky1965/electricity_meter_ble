@@ -3,7 +3,7 @@
 
 typedef enum _pkt_error_t {
     PKT_OK  = 0,
-    PKT_NO_PKT,
+    PKT_ERR_NO_PKT,
     PKT_ERR_TIMEOUT,
     PKT_ERR_UNKNOWN_FORMAT,
     PKT_ERR_DIFFERENT_COMMAND,
