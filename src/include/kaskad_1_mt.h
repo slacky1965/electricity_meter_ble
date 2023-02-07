@@ -1,14 +1,19 @@
 #ifndef SRC_INCLUDE_KASKAD_1_MT_H_
 #define SRC_INCLUDE_KASKAD_1_MT_H_
 
+#define PKT_BUFF_MAX_LEN     128        /* max len read from uart          */
+
 typedef enum _command_t {
-    cmd_open_channel        = 0x01,
-    cmd_current_data        = 0x05,
-    cmd_volts_data          = 0x0129,   /* command 0x29, sub command 0x01 */
-    cmd_amps_data           = 0x012c,
-    cmd_power_data          = 0x2d,
-    cmd_serial_number       = 0x010a,
-    cmd_date_release        = 0x020a
+    cmd_open_channel         = 0x01,
+    cmd_current_data         = 0x05,
+    cmd_volts_data           = 0x0129,   /* command 0x29, sub command 0x01 */
+    cmd_amps_data            = 0x012c,
+    cmd_power_data           = 0x2d,
+    cmd_serial_number        = 0x010a,
+    cmd_date_release         = 0x020a,
+    cmd_factory_manufacturer = 0x030a,
+    cmd_name_device          = 0x040a,
+    cmd_name_device2         = 0x050a
 } command_t;
 
 typedef struct __attribute__((packed)) _package_header_t {
@@ -59,11 +64,8 @@ typedef struct __attribute__((packed)) _amps_meter_data_t {
     uint8_t          start;
     uint8_t          boundary;
     package_header_t header;
-    uint8_t          sub_cmd;
-    uint16_t         amps;
-    uint8_t          xz;
-    uint8_t          crc;
-    uint8_t          stop;
+    uint8_t          phase;     /* number of phase */
+    uint8_t          data[5];   /* value 2 or 3 bytes + crc + boundary */
 } amps_meter_data_t;
 
 typedef struct __attribute__((packed)) _volts_meter_data_t {

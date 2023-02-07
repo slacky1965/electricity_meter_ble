@@ -19,7 +19,7 @@
 
 _attribute_data_retention_ static package_t request_pkt;
 _attribute_data_retention_ static package_t response_pkt;
-_attribute_data_retention_ static uint8_t   package_buff[UART_DATA_LEN*2];
+_attribute_data_retention_ static uint8_t   package_buff[PKT_BUFF_MAX_LEN];
 _attribute_data_retention_ static uint8_t   first_start = true;
 _attribute_data_retention_ static pkt_error_t pkt_error_no;
 
@@ -68,6 +68,9 @@ _attribute_ram_code_ static void set_command(command_t command) {
         case cmd_volts_data:
         case cmd_serial_number:
         case cmd_date_release:
+        case cmd_factory_manufacturer:
+        case cmd_name_device:
+        case cmd_name_device2:
             request_pkt.header.params_len |= 0x01;
             request_pkt.pkt_len = 2 + sizeof(package_header_t) + 3;
             request_pkt.data[0] = (command >> 8) & 0xff;   // sub command
@@ -160,18 +163,13 @@ _attribute_ram_code_ static void send_command(command_t command) {
 
     buff_len = byte_stuffing();
 
-    /* three attempts to send to uart */
+    /* three attempts to write to uart */
     for (uint8_t attempt = 0; attempt < 3; attempt++) {
-        len = send_to_uart(package_buff, buff_len);
+        len = write_bytes_to_uart(package_buff, buff_len);
         if (len == buff_len) {
             request_pkt.load_len = len;
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            uint8_t *data = (uint8_t*)&request_pkt;
-            printf("request pkt: 0x");
-            for (int i = 0; i < len; i++) {
-                printf("%02x", data[i]);
-            }
-            printf("\r\n");
+        printf("send bytes: %u\r\n", len);
 #endif
             break;
         } else {
@@ -180,85 +178,99 @@ _attribute_ram_code_ static void send_command(command_t command) {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Attempt to send data to uart: %u\r\n", attempt+1);
 #endif
-        sleep_ms(100);
+        sleep_ms(250);
     }
 
     if (request_pkt.load_len == 0) {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Can't send a request pkt\r\n");
 #endif
+    } else {
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+            uint8_t *data = (uint8_t*)&request_pkt;
+            printf("request pkt: 0x");
+            for (int i = 0; i < len; i++) {
+                printf("%02x", data[i]);
+            }
+            printf("\r\n");
+#endif
     }
 }
 
 _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
 
-    size_t data_len, len, load_size = 0;
+    size_t len, load_size = 0;
+    uint8_t ch, complete = false;
+
+    pkt_error_no = PKT_ERR_TIMEOUT;
 
     memset(package_buff, 0, sizeof(package_buff));
 
     for (uint8_t attempt = 0; attempt < 3; attempt ++) {
-        data_len = get_data_len_from_uart();
         load_size = 0;
-        while(1) {
-            len = response_from_uart(package_buff+load_size, data_len-load_size);
-            if (len == -1) {
-                pkt_error_no =  PKT_ERR_UART;
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-                printf("Attempt to read data from uart: %u\r\n", attempt+1);
-#endif
-                break;
-            } else if (len == 0) {
-                if (load_size == 0) {
-                    pkt_error_no = PKT_ERR_TIMEOUT;
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-                    printf("Attempt to read data from uart: %u\r\n", attempt+1);
-#endif
-                    break;
+        while (available_buff_uart() && load_size <= PKT_BUFF_MAX_LEN) {
+
+            ch = read_byte_from_buff_uart();
+
+            if (load_size == 0) {
+                if (ch != START) {
+                    pkt_error_no = PKT_NO_PKT;
+                    continue;
                 }
+            } else if (load_size == 1) {
+                if (ch != BOUNDARY) {
+                    load_size = 0;
+                    pkt_error_no = PKT_ERR_UNKNOWN_FORMAT;
+                    continue;
+                }
+            } else if (ch == BOUNDARY) {
+                complete = true;
+            }
+
+            package_buff[load_size++] = ch;
+
+            if (complete) {
                 attempt = 3;
-                break;
-            } else if (len < (data_len-load_size)) {
-                load_size += len;
-            } else {
-                load_size += len;
-                attempt = 3;
+                pkt_error_no = PKT_OK;
                 break;
             }
         }
-        sleep_ms(100);
+        sleep_ms(250);
     }
 
-    if (load_size) {
-        if (load_size == data_len) {
-            if (*package_buff == START && *(package_buff+1) == BOUNDARY && *(package_buff+load_size-1) == BOUNDARY) {
-                len = byte_unstuffing(load_size);
-                if (len) {
-                    response_pkt.pkt_len = len;
-                    uint8_t crc = checksum((uint8_t*)&response_pkt, response_pkt.pkt_len);
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+    printf("read bytes: %u\r\n", load_size);
+#endif
 
-                    if (crc == response_pkt.data[(response_pkt.header.params_len & 0x1f)]) {
-                        if (response_pkt.header.address_from == config.meter.address) {
-                            if (response_pkt.header.command == (command & 0xff)) {
-                                pkt_error_no = PKT_OK;
-                            } else {
-                                pkt_error_no = PKT_ERR_DIFFERENT_COMMAND;
-                            }
+    if (load_size) {
+        if (complete) {
+            len = byte_unstuffing(load_size);
+            if (len) {
+                response_pkt.pkt_len = len;
+                uint8_t crc = checksum((uint8_t*)&response_pkt, response_pkt.pkt_len);
+
+                if (crc == response_pkt.data[(response_pkt.header.params_len & 0x1f)]) {
+                    if (response_pkt.header.address_from == config.meter.address) {
+                        if (response_pkt.header.command == (command & 0xff)) {
+                            pkt_error_no = PKT_OK;
                         } else {
-                            pkt_error_no = PKT_ERR_ADDRESS;
+                            pkt_error_no = PKT_ERR_DIFFERENT_COMMAND;
                         }
                     } else {
-                        pkt_error_no = PKT_ERR_CRC;
+                        pkt_error_no = PKT_ERR_ADDRESS;
                     }
                 } else {
-                    pkt_error_no = PKT_ERR_UNSTUFFING;
+                    pkt_error_no = PKT_ERR_CRC;
                 }
             } else {
-                pkt_error_no = PKT_ERR_UNKNOWN_FORMAT;
+                pkt_error_no = PKT_ERR_UNSTUFFING;
             }
         } else {
             pkt_error_no = PKT_ERR_INCOMPLETE;
         }
     }
+
+
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
     switch (pkt_error_no) {
@@ -297,7 +309,7 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
 _attribute_ram_code_ static package_t *get_pkt_data(command_t command) {
 
     send_command(command);
-    sleep_ms(200);
+    sleep_ms(250);
     if (request_pkt.load_len > 0) {
         if (response_meter(command) == PKT_OK) {
             return &response_pkt;
@@ -381,6 +393,7 @@ _attribute_ram_code_ void get_amps_data() {
 
     amps_meter_data_t *amps_response;
     package_t         *pkt;
+    uint32_t amps;
 
     pkt = get_pkt_data(cmd_amps_data);
 
@@ -393,7 +406,12 @@ _attribute_ram_code_ void get_amps_data() {
             printf("%02x", data[i]);
         }
         printf("\r\n");
-        printf("amps: %u,%02u\r\n", amps_response->amps/1000, amps_response->amps%1000);
+        amps = amps_response->data[0];
+        amps |= (amps_response->data[1] << 8) & 0xff00;
+        if (amps_response->header.params_len == 4) {
+            amps |= (amps_response->data[2] << 16) & 0xff0000;
+        }
+        printf("amps: %u,%02u\r\n", amps/1000, amps%1000);
 #endif
     }
 }
@@ -416,7 +434,7 @@ _attribute_ram_code_ void get_voltage_data() {
         printf("\r\n");
 #endif
         if (config.meter.voltage != volts_response->volts) {
-            config.meter.voltage = volts_response->volts;
+            config.meter.voltage = volts_response->volts/10;
             pv_changed = true;
             voltage_notify = NOTIFY_MAX;
             save_config = true;
@@ -538,10 +556,27 @@ _attribute_ram_code_ void get_date_release_data() {
 
 }
 
+void pkt_test(command_t command) {
+    package_t *pkt;
+    pkt = get_pkt_data(command);
+
+    if (pkt) {
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+        uint8_t *data = (uint8_t*) pkt;
+        printf("package test: 0x");
+        for (int i = 0; i < response_pkt.pkt_len; i++) {
+            printf("%02x", data[i]);
+        }
+        printf("\r\n");
+
+        printf("name device: %s\r\n", pkt->data);
+#endif
+    } else {
+        printf("pkt = NULL\r\n");
+    }
+}
 
 _attribute_ram_code_ void measure_meter() {
-
-    flush_uart_buff();
 
     if (first_start_data()) {
         get_current_data();
