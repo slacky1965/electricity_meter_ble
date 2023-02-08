@@ -28,6 +28,7 @@ static void init_default_config() {
     config.flash_addr = BEGIN_USER_DATA;
     config.meter.id = ID_METER;
     config.measurement_period = MEASUREMENT_PERIOD;
+    config.meter.division_factor = 1;
     default_config = true;
 }
 

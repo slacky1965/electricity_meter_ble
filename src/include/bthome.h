@@ -104,13 +104,15 @@ typedef struct __attribute__((packed)) _tariff_t {
     uint8_t  tariff_3[3];   /* Tariff 3             */
 } tariff_t;
 
-typedef struct __attribute__((packed)) _power_t {
+typedef struct __attribute__((packed)) _power_voltage_t {
     uint8_t  pkt_id;        /* BTHomeID_packet_id   */
     uint8_t  pid;           /* 0..255               */
-    uint8_t  power_id;      /* BTHomeID_power   */
-    uint8_t  power[3];      /* Power            */
-    uint8_t  voltage_id;    /* BTHomeID_voltage */
-    uint16_t voltage;
+    uint8_t  power_id;      /* BTHomeID_power       */
+    uint8_t  power[3];      /* Power                */
+    uint8_t  voltage_id;    /* BTHomeID_voltage     */
+    uint16_t voltage;       /* Voltage 220V         */
+    uint8_t  battery_id;    /* BTHomeID_battery     */
+    uint8_t  battery_level; /* 0-100%               */
 } power_voltage_t;
 
 typedef struct __attribute__((packed)) _bthome_nonce_t {

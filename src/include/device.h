@@ -10,6 +10,7 @@ typedef enum _pkt_error_t {
     PKT_ERR_INCOMPLETE,
     PKT_ERR_UNSTUFFING,
     PKT_ERR_ADDRESS,
+    PKT_ERR_RESPONSE,
     PKT_ERR_CRC,
     PKT_ERR_UART
 } pkt_error_t;

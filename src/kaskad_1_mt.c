@@ -54,7 +54,7 @@ _attribute_ram_code_ static uint32_t from24to32(const uint8_t *str) {
     return value;
 }
 
-_attribute_ram_code_ uint16_t divisor(const uint8_t division_factor) {
+_attribute_ram_code_ static uint16_t divisor(const uint8_t division_factor) {
 
     switch (division_factor & 0x03) {
         case 0: return 1;
@@ -72,7 +72,7 @@ _attribute_ram_code_ static void set_command(command_t command) {
 
     request_pkt.start = START;
     request_pkt.boundary = BOUNDARY;
-    request_pkt.header.params_len = 0b00100000; // 0x20 to device
+    request_pkt.header.from_to = 1; // to device
     request_pkt.header.address_to = config.meter.address; // = 20109;
     request_pkt.header.address_from = PROG_ADDR;
     request_pkt.header.command = command & 0xff;
@@ -80,8 +80,11 @@ _attribute_ram_code_ static void set_command(command_t command) {
 
     switch (command) {
         case cmd_open_channel:
-        case cmd_current_data:
+        case cmd_tariffs_data:
         case cmd_power_data:
+        case cmd_read_configure:
+        case cmd_get_info:
+        case cmd_test_error:
             request_pkt.pkt_len = 2 + sizeof(package_header_t) + 2;
             request_pkt.data[0] = checksum((uint8_t*)&request_pkt, request_pkt.pkt_len);
             request_pkt.data[1] = BOUNDARY;
@@ -94,7 +97,7 @@ _attribute_ram_code_ static void set_command(command_t command) {
         case cmd_factory_manufacturer:
         case cmd_name_device:
         case cmd_name_device2:
-            request_pkt.header.params_len |= 0x01;
+            request_pkt.header.data_len = 1;
             request_pkt.pkt_len = 2 + sizeof(package_header_t) + 3;
             request_pkt.data[0] = (command >> 8) & 0xff;   // sub command
             request_pkt.data[1] = checksum((uint8_t*)&request_pkt, request_pkt.pkt_len);
@@ -223,7 +226,7 @@ _attribute_ram_code_ static void send_command(command_t command) {
 _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
 
     size_t len, load_size = 0;
-    uint8_t ch, complete = false;
+    uint8_t err = 0, ch, complete = false;
 
     pkt_error_no = PKT_ERR_TIMEOUT;
 
@@ -266,21 +269,33 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
 #endif
 
     if (load_size) {
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+        printf("response pkt: 0x");
+        for (int i = 0; i < load_size; i++) {
+            printf("%02x", package_buff[i]);
+        }
+        printf("\r\n");
+#endif
         if (complete) {
             len = byte_unstuffing(load_size);
             if (len) {
                 response_pkt.pkt_len = len;
                 uint8_t crc = checksum((uint8_t*)&response_pkt, response_pkt.pkt_len);
-
-                if (crc == response_pkt.data[(response_pkt.header.params_len & 0x1f)]) {
-                    if (response_pkt.header.address_from == config.meter.address) {
-                        if (response_pkt.header.command == (command & 0xff)) {
-                            pkt_error_no = PKT_OK;
+                if (crc == response_pkt.data[(response_pkt.header.data_len)]) {
+                    response_status_t *status = (response_status_t*)&response_pkt.header.password_status;
+                    if (status->error == PKT_OK) {
+                        if (response_pkt.header.address_from == config.meter.address) {
+                            if (response_pkt.header.command == (command & 0xff)) {
+                                pkt_error_no = PKT_OK;
+                            } else {
+                                pkt_error_no = PKT_ERR_DIFFERENT_COMMAND;
+                            }
                         } else {
-                            pkt_error_no = PKT_ERR_DIFFERENT_COMMAND;
+                            pkt_error_no = PKT_ERR_ADDRESS;
                         }
                     } else {
-                        pkt_error_no = PKT_ERR_ADDRESS;
+                        pkt_error_no = PKT_ERR_RESPONSE;
+                        err = status->error;
                     }
                 } else {
                     pkt_error_no = PKT_ERR_CRC;
@@ -293,12 +308,13 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
         }
     }
 
-
-
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
     switch (pkt_error_no) {
         case PKT_ERR_TIMEOUT:
             printf("Response timed out\r\n");
+            break;
+        case PKT_ERR_RESPONSE:
+            printf("Response error: 0x%02x\r\n", err);
             break;
         case PKT_ERR_UNKNOWN_FORMAT:
         case PKT_ERR_NO_PKT:
@@ -336,15 +352,6 @@ _attribute_ram_code_ static package_t *get_pkt_data(command_t command) {
     sleep_ms(200);
     if (request_pkt.load_len > 0) {
         if (response_meter(command) == PKT_OK) {
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        uint8_t *data = (uint8_t*)&response_pkt;
-        printf("response pkt: 0x");
-        for (int i = 0; i < response_pkt.pkt_len; i++) {
-            printf("%02x", data[i]);
-        }
-        printf("\r\n");
-#endif
-
             return &response_pkt;
         }
     }
@@ -369,7 +376,7 @@ _attribute_ram_code_ void get_tariffs_data() {
     tariffs_meter_data_t *tariffs_response;
     package_t            *pkt;
 
-    pkt = get_pkt_data(cmd_current_data);
+    pkt = get_pkt_data(cmd_tariffs_data);
 
     if (pkt) {
         tariffs_response = (tariffs_meter_data_t*)pkt->data;
@@ -426,7 +433,7 @@ _attribute_ram_code_ void get_amps_data() {
         /* pkt->header.params_len & 0x1f == 3 -> amps 2 bytes
          * pkt->header.params_len & 0x1f == 4 -> amps 3 bytes
          */
-        if ((pkt->header.params_len & 0x1f) == 3) {
+        if (pkt->header.data_len == 3) {
             amps &= 0xffff;
         }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
@@ -554,6 +561,45 @@ _attribute_ram_code_ void get_date_release_data() {
 
 }
 
+_attribute_ram_code_ void get_configure_data() {
+
+    read_cfg_meter_data_t *read_cfg;
+    package_t             *pkt;
+
+    pkt = get_pkt_data(cmd_read_configure);
+
+    if (pkt) {
+        read_cfg = (read_cfg_meter_data_t*)pkt->data;
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+        printf("divisor: %u\r\n", divisor(read_cfg->divisor));
+#endif
+        if (config.meter.division_factor != read_cfg->divisor) {
+            config.meter.division_factor = read_cfg->divisor;
+            save_config = true;
+        }
+    }
+}
+
+_attribute_ram_code_ void get_info_data() {
+
+    info_meter_data_t *info;
+    package_t          *pkt;
+
+    pkt = get_pkt_data(cmd_get_info);
+
+    if (pkt) {
+        info = (info_meter_data_t*)pkt->data;
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+        printf("Battery voltage: %u,%u\r\n", info->battery_mv/1000, info->battery_mv%1000);
+#endif
+        if (config.meter.battery_mv != info->battery_mv) {
+            config.meter.battery_mv = info->battery_mv;
+            pv_changed = true;
+            save_config = true;
+        }
+    }
+}
+
 void pkt_test(command_t command) {
     package_t *pkt;
     pkt = get_pkt_data(command);
@@ -567,19 +613,34 @@ void pkt_test(command_t command) {
 _attribute_ram_code_ void measure_meter() {
 
     if (ping_start_data()) {
-        get_tariffs_data();
-        get_voltage_data();
-        get_power_data();
         if (first_start) {
+            get_configure_data();
             get_amps_data();
             get_serial_number_data();
             get_date_release_data();
             first_start = false;
         }
+        get_info_data();
+        get_tariffs_data();
+        get_voltage_data();
+        get_power_data();
     }
     if (save_config) {
         write_config();
     }
+
+}
+
+/* min 2400, max 3300 */
+_attribute_ram_code_ uint8_t get_battery_device_level(uint16_t battery_mv) {
+    uint8_t battery_level = 0;
+    if (battery_mv > 2400) {
+        battery_level = (battery_mv - 2400) / ((3300 - 2400) / 100);
+        if (battery_level > 100)
+            battery_level = 100;
+    }
+    return battery_level;
+
 }
 
 #endif
