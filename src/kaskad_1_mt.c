@@ -454,7 +454,9 @@ _attribute_ram_code_ void get_voltage_data() {
         }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("phase: %u, volts: %u,%02u\r\n", volts_response->phase_num, volts_response->volts/100, volts_response->volts%100);
+        printf("phase: %u, volts: %u,%02u\r\n", volts_response->phase_num,
+                                                volts_response->volts / divisor(config.meter.division_factor),
+                                                volts_response->volts % divisor(config.meter.division_factor));
 #endif
 
     }
