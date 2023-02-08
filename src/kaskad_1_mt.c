@@ -402,11 +402,6 @@ _attribute_ram_code_ void get_tariffs_data() {
             save_config = true;
         }
 
-        if (config.meter.division_factor != (tariffs_response->byte_cfg & 0x03)) {
-            config.meter.division_factor = tariffs_response->byte_cfg & 0x03;
-            save_config = true;
-        }
-
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("tariff1: %u,%u\r\n", config.meter.tariff_1 / divisor(config.meter.division_factor),
                                      config.meter.tariff_1 % divisor(config.meter.division_factor));
@@ -480,11 +475,6 @@ _attribute_ram_code_ void get_power_data() {
             config.meter.power = power;
             pv_changed = true;
             power_notify = NOTIFY_MAX;
-            save_config = true;
-        }
-
-        if (config.meter.division_factor != (power_response->byte_cfg & 0x03)) {
-            config.meter.division_factor = power_response->byte_cfg & 0x03;
             save_config = true;
         }
 
