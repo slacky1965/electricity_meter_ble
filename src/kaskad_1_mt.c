@@ -602,19 +602,20 @@ void pkt_test(command_t command) {
 
 _attribute_ram_code_ void measure_meter() {
 
-    if (ping_start_data()) {
-        if (first_start) {
-            get_configure_data();
+    if (ping_start_data()) {            /* ping to device       */
+        if (first_start) {              /* after reset          */
+            get_configure_data();       /* get divisor          */
             get_amps_data();
             get_serial_number_data();
             get_date_release_data();
             first_start = false;
         }
-        get_info_data();
-        get_tariffs_data();
-        get_voltage_data();
-        get_power_data();
+        get_info_data();                /* get battery voltage  */
+        get_tariffs_data();             /* get 3 tariffs        */
+        get_voltage_data();             /* get voltage net ~220 */
+        get_power_data();               /* get power            */
     }
+
     if (save_config) {
         write_config();
     }
