@@ -2,7 +2,7 @@
 #define SRC_INCLUDE_KASKAD_1_MT_H_
 
 #define PKT_BUFF_MAX_LEN     128        /* max len read from uart          */
-#define DATA_MAX_LEN         30
+#define DATA_MAX_LEN         30         /* do not change!                  */
 
 typedef enum _command_t {
     cmd_open_channel         = 0x01,
@@ -50,7 +50,7 @@ typedef struct __attribute__((packed)) _tariffs_meter_data_t {
 
 typedef struct __attribute__((packed)) _amps_meter_data_t {
     uint8_t          phase_num; /* number of phase    */
-    uint8_t          amps[3];   /* value 2 or 3 bytes */
+    uint8_t          amps[3];   /* maybe 2 or 3 bytes */
 } amps_meter_data_t;
 
 typedef struct __attribute__((packed)) _volts_meter_data_t {

@@ -423,6 +423,9 @@ _attribute_ram_code_ void get_amps_data() {
     if (pkt) {
         amps_response = (amps_meter_data_t*)pkt->data;
         amps = from24to32(amps_response->amps);
+        /* pkt->header.params_len & 0x1f == 3 -> amps 2 bytes
+         * pkt->header.params_len & 0x1f == 4 -> amps 3 bytes
+         */
         if ((pkt->header.params_len & 0x1f) == 3) {
             amps &= 0xffff;
         }
