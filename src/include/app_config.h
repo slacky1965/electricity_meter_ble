@@ -7,7 +7,7 @@ extern "C" {
 #define VERSION                 0x12    /* BCD format (0x10 -> '1.0')   */
 #define ELECTRICITYMETER_ID     0xFEDA  /* uint16_t                     */
 #define BINDKEY_NOTIFY_ID       0xFEDB  /* uint16_t                     */
-#define SERIAL_NUMNER_ID        0xFEDC
+#define SERIAL_NUMBER_ID        0xFEDC
 #define DATE_RELEASE_ID         0xFEDD
 #define DEV_NAME_CHR            'E','l','e','c','t','r','i','c','i','t','y','_','m','e','t','e','r'
 #define DEV_NAME_STR            "Electricity_meter"

@@ -45,7 +45,7 @@ void bthome_encrypt_tariff_data_beacon() {
     bthome_nonce.counter++;
     adv_crypt_tariff_data.counter = bthome_nonce.counter;
 
-    aes_ccm_encrypt_and_tag((const unsigned char *)&config.bindkey,
+    aes_ccm_encrypt_and_tag((const unsigned char *)&config.save_data.bindkey,
                        (uint8_t*)&bthome_nonce, sizeof(bthome_nonce_t),
                        0, 0,
                        (uint8_t*)&adv_tariff_data.tariff, sizeof(tariff_t),
@@ -59,7 +59,7 @@ void bthome_encrypt_pv_data_beacon() {
     bthome_nonce.counter++;
     adv_crypt_pv_data.counter = bthome_nonce.counter;
 
-    aes_ccm_encrypt_and_tag((const unsigned char *)&config.bindkey,
+    aes_ccm_encrypt_and_tag((const unsigned char *)&config.save_data.bindkey,
                        (uint8_t*)&bthome_nonce, sizeof(bthome_nonce_t),
                        0, 0,
                        (uint8_t*)&adv_pv_data.pv, sizeof(power_voltage_t),

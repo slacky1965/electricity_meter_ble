@@ -6,6 +6,7 @@
 #include "log.h"
 #include "bthome.h"
 #include "ble.h"
+#include "device.h"
 
 _attribute_data_retention_ config_t config;
 _attribute_data_retention_ static uint8_t default_config = false;
@@ -26,9 +27,8 @@ static void init_default_config() {
     config.size = sizeof(config_t);
     config.id = ID_CONFIG;
     config.flash_addr = BEGIN_USER_DATA;
-    config.meter.id = ID_METER;
     config.measurement_period = MEASUREMENT_PERIOD;
-    config.meter.division_factor = 1;
+    meter.division_factor = 1;
     default_config = true;
 }
 
@@ -74,35 +74,29 @@ _attribute_ram_code_ void init_config() {
             printf("Check new format config! Reinit.\r\n");
 #endif /* UART_PRINT_DEBUG_ENABLE */
             clear_user_data();
-            if (config_curr.meter.id == ID_METER) {
+            if (config_curr.save_data.id == ID_DATA) {
                 /* save old count in new config */
 #if UART_PRINT_DEBUG_ENABLE
-                printf("Find old electricity meter data.\r\n");
-                printf("Tariff_1        - %u\r\n", config_curr.meter.tariff_1);
-                printf("Tariff_2        - %u\r\n", config_curr.meter.tariff_2);
-                printf("Tariff_3        - %u\r\n", config_curr.meter.tariff_3);
-                printf("Power           - %u\r\n", config_curr.meter.power);
-                printf("Voltage         - %u\r\n", config_curr.meter.voltage);
-                printf("Device address  - %05u\r\n", config_curr.meter.address);
-                printf("Serial number   - %s\r\n", config_curr.meter.serial_number);
-                printf("Date of release - %s\r\n", config_curr.meter.date_release);
+                printf("Find old saving data.\r\n");
+                printf("Device address  - %05u\r\n", config_curr.save_data.address_device);
+                if (config_curr.save_data.encrypted) {
+                    printf("Encryption is enabled\r\n");
+                    printf("Encryption key: 0x");
+                    for (int i = 0; i < sizeof(config_curr.save_data.bindkey); i++) {
+                        printf("%02x", config_curr.save_data.bindkey[i]);
+                    }
+                    printf("\r\n");
+                } else {
+                    printf("Encryption is disabled\r\n");
+                }
 #endif /* UART_PRINT_DEBUG_ENABLE */
 
                 init_default_config();
 
-                config.meter.tariff_1 = config_curr.meter.tariff_1;
-                config.meter.tariff_2 = config_curr.meter.tariff_2;
-                config.meter.tariff_3 = config_curr.meter.tariff_3;
-                config.meter.power    = config_curr.meter.power;
-                config.meter.voltage  = config_curr.meter.voltage;
-                config.meter.address  = config_curr.meter.address;
-                if (config_curr.meter.sn_len) {
-                    memcpy(config.meter.serial_number, config_curr.meter.serial_number, config_curr.meter.sn_len);
-                    config.meter.sn_len = config_curr.meter.sn_len;
-                }
-                if (config_curr.meter.dr_len) {
-                    memcpy(config.meter.date_release, config_curr.meter.date_release, config_curr.meter.dr_len);
-                    config.meter.dr_len = config_curr.meter.dr_len;
+                config.save_data.address_device = config_curr.save_data.address_device;
+                config.save_data.encrypted = config_curr.save_data.encrypted;
+                if (config.save_data.encrypted) {
+                    memcpy(config.save_data.bindkey, config_curr.save_data.bindkey, sizeof(config.save_data.bindkey));
                 }
                 write_config();
             } else {
@@ -153,10 +147,13 @@ _attribute_ram_code_ void write_config() {
 }
 
 _attribute_ram_code_ void clear_config() {
-    memset(&(config.meter), 0, sizeof(meter_t));
-    config.id = ID_METER;
+
+    memset(&meter, 0, sizeof(meter_t));
+    memset(&config.save_data, 0, sizeof(config.save_data));
+    config.save_data.id = ID_DATA;
     config.measurement_period = MEASUREMENT_PERIOD;
     write_config();
     tariff_changed = true;
     pv_changed = true;
 }
+

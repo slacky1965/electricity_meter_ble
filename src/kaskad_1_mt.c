@@ -23,6 +23,8 @@ _attribute_data_retention_ static uint8_t   package_buff[PKT_BUFF_MAX_LEN];
 _attribute_data_retention_ static uint8_t   first_start = true;
 _attribute_data_retention_ static pkt_error_t pkt_error_no;
 
+_attribute_data_retention_ meter_t meter = {0};
+
 _attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
   // skip 73 55 header (and 55 footer is beyond checksum anyway)
   const uint8_t* table = &src_buffer[2];
@@ -73,7 +75,7 @@ _attribute_ram_code_ static void set_command(command_t command) {
     request_pkt.start = START;
     request_pkt.boundary = BOUNDARY;
     request_pkt.header.from_to = 1; // to device
-    request_pkt.header.address_to = config.meter.address; // = 20109;
+    request_pkt.header.address_to = config.save_data.address_device; // = 20109;
     request_pkt.header.address_from = PROG_ADDR;
     request_pkt.header.command = command & 0xff;
     request_pkt.header.password_status = PASSWORD;
@@ -223,7 +225,7 @@ _attribute_ram_code_ static void send_command(command_t command) {
     }
 }
 
-_attribute_ram_code_ pkt_error_t response_meter(command_t command) {
+_attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
 
     size_t len, load_size = 0;
     uint8_t err = 0, ch, complete = false;
@@ -284,7 +286,7 @@ _attribute_ram_code_ pkt_error_t response_meter(command_t command) {
                 if (crc == response_pkt.data[(response_pkt.header.data_len)]) {
                     response_status_t *status = (response_status_t*)&response_pkt.header.password_status;
                     if (status->error == PKT_OK) {
-                        if (response_pkt.header.address_from == config.meter.address) {
+                        if (response_pkt.header.address_from == config.save_data.address_device) {
                             if (response_pkt.header.command == (command & 0xff)) {
                                 pkt_error_no = PKT_OK;
                             } else {
@@ -381,34 +383,31 @@ _attribute_ram_code_ void get_tariffs_data() {
     if (pkt) {
         tariffs_response = (tariffs_meter_data_t*)pkt->data;
 
-        if (config.meter.tariff_1 != (tariffs_response->tariff_1)) {
-            config.meter.tariff_1 = tariffs_response->tariff_1;
+        if (meter.tariff_1 != (tariffs_response->tariff_1)) {
+            meter.tariff_1 = tariffs_response->tariff_1;
             tariff_changed = true;
             tariff1_notify = NOTIFY_MAX;
-            save_config = true;
         }
 
-        if (config.meter.tariff_2 != (tariffs_response->tariff_2)) {
-            config.meter.tariff_2 = tariffs_response->tariff_2;
+        if (meter.tariff_2 != (tariffs_response->tariff_2)) {
+            meter.tariff_2 = tariffs_response->tariff_2;
             tariff_changed = true;
             tariff2_notify = NOTIFY_MAX;
-            save_config = true;
         }
 
-        if (config.meter.tariff_3 != (tariffs_response->tariff_3)) {
-            config.meter.tariff_3 = tariffs_response->tariff_3;
+        if (meter.tariff_3 != (tariffs_response->tariff_3)) {
+            meter.tariff_3 = tariffs_response->tariff_3;
             tariff_changed = true;
             tariff3_notify = NOTIFY_MAX;
-            save_config = true;
         }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("tariff1: %u,%u\r\n", config.meter.tariff_1 / divisor(config.meter.division_factor),
-                                     config.meter.tariff_1 % divisor(config.meter.division_factor));
-        printf("tariff2: %u,%u\r\n", config.meter.tariff_2 / divisor(config.meter.division_factor),
-                                     config.meter.tariff_2 % divisor(config.meter.division_factor));
-        printf("tariff3: %u,%u\r\n", config.meter.tariff_3 / divisor(config.meter.division_factor),
-                                     config.meter.tariff_3 % divisor(config.meter.division_factor));
+        printf("tariff1: %u,%u\r\n", meter.tariff_1 / divisor(meter.division_factor),
+                                     meter.tariff_1 % divisor(meter.division_factor));
+        printf("tariff2: %u,%u\r\n", meter.tariff_2 / divisor(meter.division_factor),
+                                     meter.tariff_2 % divisor(meter.division_factor));
+        printf("tariff3: %u,%u\r\n", meter.tariff_3 / divisor(meter.division_factor),
+                                     meter.tariff_3 % divisor(meter.division_factor));
 #endif
 
     }
@@ -446,17 +445,16 @@ _attribute_ram_code_ void get_voltage_data() {
 
     if (pkt) {
         volts_response = (volts_meter_data_t*)pkt->data;
-        if (config.meter.voltage != volts_response->volts) {
-            config.meter.voltage = volts_response->volts;
+        if (meter.voltage != volts_response->volts) {
+            meter.voltage = volts_response->volts;
             pv_changed = true;
             voltage_notify = NOTIFY_MAX;
-            save_config = true;
         }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("phase: %u, volts: %u,%02u\r\n", volts_response->phase_num,
-                                                volts_response->volts / divisor(config.meter.division_factor),
-                                                volts_response->volts % divisor(config.meter.division_factor));
+                                                volts_response->volts / divisor(meter.division_factor),
+                                                volts_response->volts % divisor(meter.division_factor));
 #endif
 
     }
@@ -473,16 +471,15 @@ _attribute_ram_code_ void get_power_data() {
     if (pkt) {
         power_response = (power_meter_data_t*)pkt->data;
         power = from24to32(power_response->power);
-        if (config.meter.power != power) {
-            config.meter.power = power;
+        if (meter.power != power) {
+            meter.power = power;
             pv_changed = true;
             power_notify = NOTIFY_MAX;
-            save_config = true;
         }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("power: %u,%02u\r\n", power / divisor(config.meter.division_factor),
-                                     power % divisor(config.meter.division_factor));
+        printf("power: %u,%02u\r\n", power / divisor(meter.division_factor),
+                                     power % divisor(meter.division_factor));
 #endif
     }
 }
@@ -506,12 +503,12 @@ _attribute_ram_code_ void get_serial_number_data() {
         printf("\r\n");
 #endif
 
-        if (memcmp(config.meter.serial_number, serial_number_response->data, DATA_MAX_LEN) != 0) {
-            config.meter.sn_len = 0;
+        if (memcmp(meter.serial_number, serial_number_response->data, DATA_MAX_LEN) != 0) {
+            meter.serial_number_len = 0;
             for (int i = 0; i < DATA_MAX_LEN; i++) {
-                config.meter.serial_number[i] = serial_number_response->data[i];
+                meter.serial_number[i] = serial_number_response->data[i];
                 if (serial_number_response->data[i] != 0) {
-                    config.meter.sn_len++;
+                    meter.serial_number_len++;
                 }
             }
             sn_notify = NOTIFY_MAX;
@@ -539,12 +536,12 @@ _attribute_ram_code_ void get_date_release_data() {
         printf("\r\n");
 #endif
 
-        if (memcpy(config.meter.date_release, date_release_response->data, DATA_MAX_LEN) != 0) {
-            config.meter.dr_len = 0;
+        if (memcpy(meter.date_release, date_release_response->data, DATA_MAX_LEN) != 0) {
+            meter.date_release_len = 0;
             for (int i = 0; i < DATA_MAX_LEN; i++) {
-                config.meter.date_release[i] = date_release_response->data[i];
+                meter.date_release[i] = date_release_response->data[i];
                 if (date_release_response->data[i] != 0) {
-                    config.meter.dr_len++;
+                    meter.date_release_len++;
                 }
             }
             dr_notify = NOTIFY_MAX;
@@ -565,9 +562,8 @@ _attribute_ram_code_ void get_configure_data() {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("divisor: %u\r\n", divisor(read_cfg->divisor));
 #endif
-        if (config.meter.division_factor != read_cfg->divisor) {
-            config.meter.division_factor = read_cfg->divisor;
-            save_config = true;
+        if (meter.division_factor != read_cfg->divisor) {
+            meter.division_factor = read_cfg->divisor;
         }
     }
 }
@@ -584,10 +580,9 @@ _attribute_ram_code_ void get_info_data() {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Battery voltage: %u,%u\r\n", info->battery_mv/1000, info->battery_mv%1000);
 #endif
-        if (config.meter.battery_mv != info->battery_mv) {
-            config.meter.battery_mv = info->battery_mv;
+        if (meter.battery_mv != info->battery_mv) {
+            meter.battery_mv = info->battery_mv;
             pv_changed = true;
-            save_config = true;
         }
     }
 }
@@ -617,11 +612,6 @@ _attribute_ram_code_ void measure_meter() {
         get_voltage_data();             /* get voltage net ~220 */
         get_power_data();               /* get power            */
     }
-
-    if (save_config) {
-        write_config();
-    }
-
 }
 
 /* min 2400, max 3300 */

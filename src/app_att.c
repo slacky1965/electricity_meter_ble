@@ -274,23 +274,23 @@ _attribute_data_retention_ attribute_t my_Attributes[] = {
     // 0019 - 0028
     {16,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_emeterServiceUUID), 0},
     {0,ATT_PERMISSIONS_READ,2,sizeof(my_tariff1CharVal),(u8*)(&my_characterUUID),(u8*)(my_tariff1CharVal), 0},            //prop
-    {0,ATT_PERMISSIONS_READ,2,sizeof(config.meter.tariff_1),(u8*)(&my_tariff1CharUUID),(u8*)(&config.meter.tariff_1), 0}, //value
+    {0,ATT_PERMISSIONS_READ,2,sizeof(meter.tariff_1),(u8*)(&my_tariff1CharUUID),(u8*)(&meter.tariff_1), 0}, //value
     {0,ATT_PERMISSIONS_RDWR,2,sizeof(tariff1ValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&tariff1ValueInCCC), 0},     //value
 
     {0,ATT_PERMISSIONS_READ,2,sizeof(my_tariff2CharVal),(u8*)(&my_characterUUID),(u8*)(my_tariff2CharVal), 0},            //prop
-    {0,ATT_PERMISSIONS_READ,2,sizeof(config.meter.tariff_2),(u8*)(&my_tariff2CharUUID),(u8*)(&config.meter.tariff_2), 0}, //value
+    {0,ATT_PERMISSIONS_READ,2,sizeof(meter.tariff_2),(u8*)(&my_tariff2CharUUID),(u8*)(&meter.tariff_2), 0}, //value
     {0,ATT_PERMISSIONS_RDWR,2,sizeof(tariff2ValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&tariff2ValueInCCC), 0},     //value
 
     {0,ATT_PERMISSIONS_READ,2,sizeof(my_tariff3CharVal),(u8*)(&my_characterUUID),(u8*)(my_tariff3CharVal), 0},            //prop
-    {0,ATT_PERMISSIONS_READ,2,sizeof(config.meter.tariff_3),(u8*)(&my_tariff3CharUUID),(u8*)(&config.meter.tariff_3), 0}, //value
+    {0,ATT_PERMISSIONS_READ,2,sizeof(meter.tariff_3),(u8*)(&my_tariff3CharUUID),(u8*)(&meter.tariff_3), 0}, //value
     {0,ATT_PERMISSIONS_RDWR,2,sizeof(tariff3ValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&tariff3ValueInCCC), 0},     //value
 
     {0,ATT_PERMISSIONS_READ,2,sizeof(my_powerCharVal),(u8*)(&my_characterUUID),(u8*)(my_powerCharVal), 0},                //prop
-    {0,ATT_PERMISSIONS_READ,2,sizeof(config.meter.power),(u8*)(&my_powerCharUUID),(u8*)(&config.meter.power), 0},         //value
+    {0,ATT_PERMISSIONS_READ,2,sizeof(meter.power),(u8*)(&my_powerCharUUID),(u8*)(&meter.power), 0},         //value
     {0,ATT_PERMISSIONS_RDWR,2,sizeof(powerValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&powerValueInCCC), 0},         //value
 
     {0,ATT_PERMISSIONS_READ,2,sizeof(my_voltageCharVal),(u8*)(&my_characterUUID),(u8*)(my_voltageCharVal), 0},            //prop
-    {0,ATT_PERMISSIONS_READ,2,sizeof(config.meter.voltage),(u8*)(&my_voltageCharUUID),(u8*)(&config.meter.voltage), 0},   //value
+    {0,ATT_PERMISSIONS_READ,2,sizeof(meter.voltage),(u8*)(&my_voltageCharUUID),(u8*)(&meter.voltage), 0},   //value
     {0,ATT_PERMISSIONS_RDWR,2,sizeof(voltageValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&voltageValueInCCC), 0},     //value
 
     ////////////////////////////////////// OTA /////////////////////////////////////////////////////

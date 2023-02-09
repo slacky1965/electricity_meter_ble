@@ -284,14 +284,14 @@ _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
         if (pv_changed) {
             pv_changed = false;
             adv_pv_data.pv.pid++;
-            from32to24(adv_pv_data.pv.power, config.meter.power);
-            adv_pv_data.pv.voltage = config.meter.voltage/10;
-            adv_pv_data.pv.battery_level = get_battery_device_level(config.meter.battery_mv);
-            if (config.encrypted) {
+            from32to24(adv_pv_data.pv.power, meter.power);
+            adv_pv_data.pv.voltage = meter.voltage/10;
+            adv_pv_data.pv.battery_level = get_battery_device_level(meter.battery_mv);
+            if (config.save_data.encrypted) {
                 bthome_encrypt_pv_data_beacon();
             }
         }
-        if (config.encrypted) {
+        if (config.save_data.encrypted) {
             bls_ll_setAdvData((uint8_t*)&adv_crypt_pv_data, sizeof(adv_crypt_power_voltage_t));
         } else {
             bls_ll_setAdvData((uint8_t*)&adv_pv_data, sizeof(adv_power_voltage_t));
@@ -300,14 +300,14 @@ _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
         if (tariff_changed) {
             tariff_changed = false;
             adv_tariff_data.tariff.pid++;
-            from32to24(adv_tariff_data.tariff.tariff_1, config.meter.tariff_1*10);
-            from32to24(adv_tariff_data.tariff.tariff_2, config.meter.tariff_2*10);
-            from32to24(adv_tariff_data.tariff.tariff_3, config.meter.tariff_3*10);
-            if (config.encrypted) {
+            from32to24(adv_tariff_data.tariff.tariff_1, meter.tariff_1*10);
+            from32to24(adv_tariff_data.tariff.tariff_2, meter.tariff_2*10);
+            from32to24(adv_tariff_data.tariff.tariff_3, meter.tariff_3*10);
+            if (config.save_data.encrypted) {
                 bthome_encrypt_tariff_data_beacon();
             }
         }
-        if (config.encrypted) {
+        if (config.save_data.encrypted) {
             bls_ll_setAdvData((uint8_t*)&adv_crypt_tariff_data, sizeof(adv_crypt_tariff_t));
         } else {
             bls_ll_setAdvData((uint8_t*)&adv_tariff_data, sizeof(adv_tariff_t));
@@ -368,11 +368,11 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
     adv_tariff_data.tariff.pid = 0;
 
     adv_tariff_data.tariff.tariff1_id = BTHomeID_energy;
-    from32to24(adv_tariff_data.tariff.tariff_1, config.meter.tariff_1*10);
+    from32to24(adv_tariff_data.tariff.tariff_1, meter.tariff_1*10);
     adv_tariff_data.tariff.tariff2_id = BTHomeID_energy;
-    from32to24(adv_tariff_data.tariff.tariff_2, config.meter.tariff_2*10);
+    from32to24(adv_tariff_data.tariff.tariff_2, meter.tariff_2*10);
     adv_tariff_data.tariff.tariff3_id = BTHomeID_energy;
-    from32to24(adv_tariff_data.tariff.tariff_3, config.meter.tariff_3*10);
+    from32to24(adv_tariff_data.tariff.tariff_3, meter.tariff_3*10);
 
     adv_pv_data.flg_size  = 0x02;              /* size  */
     adv_pv_data.flg_type  = GAP_ADTYPE_FLAGS;  /* 0x01  */
@@ -387,11 +387,11 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
     adv_pv_data.pv.pid = 0;
 
     adv_pv_data.pv.power_id = BTHomeID_power;
-    from32to24(adv_pv_data.pv.power, config.meter.power);
+    from32to24(adv_pv_data.pv.power, meter.power);
     adv_pv_data.pv.voltage_id = BTHomeID_voltage;
-    adv_pv_data.pv.voltage = config.meter.voltage;
+    adv_pv_data.pv.voltage = meter.voltage;
     adv_pv_data.pv.battery_id = BTHomeID_battery;
-    adv_pv_data.pv.battery_level = get_battery_device_level(config.meter.battery_mv);
+    adv_pv_data.pv.battery_level = get_battery_device_level(meter.battery_mv);
 
 
     ///////////////////// Controller Initialization /////////////////////
@@ -440,7 +440,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 
     bls_app_registerEventCallback (BLT_EV_FLAG_ADV_DURATION_TIMEOUT, &ev_adv_timeout);
 
-    if (config.encrypted) {
+    if (config.save_data.encrypted) {
         bthome_beacon_init();
     }
 
@@ -452,28 +452,23 @@ void set_adv_data(uint8_t *adv_data, uint8_t data_size) {
 }
 
 void ble_send_tariff1() {
-    bls_att_pushNotifyData(TARIFF1_LEVEL_INPUT_DP_H, (uint8_t *)&config.meter.tariff_1,
-            sizeof(config.meter.tariff_1));
+    bls_att_pushNotifyData(TARIFF1_LEVEL_INPUT_DP_H, (uint8_t *)&meter.tariff_1, sizeof(meter.tariff_1));
 }
 
 void ble_send_tariff2() {
-    bls_att_pushNotifyData(TARIFF2_LEVEL_INPUT_DP_H, (uint8_t *)&config.meter.tariff_2,
-            sizeof(config.meter.tariff_2));
+    bls_att_pushNotifyData(TARIFF2_LEVEL_INPUT_DP_H, (uint8_t *)&meter.tariff_2, sizeof(meter.tariff_2));
 }
 
 void ble_send_tariff3() {
-    bls_att_pushNotifyData(TARIFF3_LEVEL_INPUT_DP_H, (uint8_t *)&config.meter.tariff_3,
-            sizeof(config.meter.tariff_3));
+    bls_att_pushNotifyData(TARIFF3_LEVEL_INPUT_DP_H, (uint8_t *)&meter.tariff_3, sizeof(meter.tariff_3));
 }
 
 void ble_send_power() {
-    bls_att_pushNotifyData(POWER_LEVEL_INPUT_DP_H, (uint8_t *)&config.meter.power,
-            sizeof(config.meter.power));
+    bls_att_pushNotifyData(POWER_LEVEL_INPUT_DP_H, (uint8_t *)&meter.power, sizeof(meter.power));
 }
 
 void ble_send_voltage() {
-    bls_att_pushNotifyData(VOLTAGE_LEVEL_INPUT_DP_H, (uint8_t *)&config.meter.voltage,
-            sizeof(config.meter.voltage));
+    bls_att_pushNotifyData(VOLTAGE_LEVEL_INPUT_DP_H, (uint8_t *)&meter.voltage, sizeof(meter.voltage));
 }
 
 void ble_send_main() {
