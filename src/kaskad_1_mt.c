@@ -384,19 +384,19 @@ _attribute_ram_code_ void get_tariffs_data() {
     if (pkt) {
         tariffs_response = (tariffs_meter_data_t*)pkt->data;
 
-        if (meter.tariff_1 != (tariffs_response->tariff_1)) {
+        if (meter.tariff_1 < tariffs_response->tariff_1) {
             meter.tariff_1 = tariffs_response->tariff_1;
             tariff_changed = true;
             tariff1_notify = NOTIFY_MAX;
         }
 
-        if (meter.tariff_2 != (tariffs_response->tariff_2)) {
+        if (meter.tariff_2 < tariffs_response->tariff_2) {
             meter.tariff_2 = tariffs_response->tariff_2;
             tariff_changed = true;
             tariff2_notify = NOTIFY_MAX;
         }
 
-        if (meter.tariff_3 != (tariffs_response->tariff_3)) {
+        if (meter.tariff_3 < tariffs_response->tariff_3) {
             meter.tariff_3 = tariffs_response->tariff_3;
             tariff_changed = true;
             tariff3_notify = NOTIFY_MAX;
