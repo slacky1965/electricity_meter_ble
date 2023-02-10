@@ -8,6 +8,7 @@ typedef enum _command_t {
     cmd_open_channel         = 0x01,
     cmd_tariffs_data         = 0x05,
     cmd_read_configure       = 0x10,
+    cmd_resource_battery     = 0x1e,
     cmd_volts_data           = 0x0129,   /* command 0x29, sub command 0x01 */
     cmd_amps_data            = 0x012c,
     cmd_power_data           = 0x2d,
@@ -95,6 +96,11 @@ typedef struct __attribute__((packed)) _read_cfg_meter_data_t {
     uint8_t          role;
 } read_cfg_meter_data_t;
 
+typedef struct __attribute__((packed)) _resbat_meter_data_t {
+    uint8_t          lifetime;
+    uint8_t          worktime;
+} resbat_meter_data_t;
+
 typedef struct __attribute__((packed)) _info_meter_data_t {
     uint8_t          id;
     uint8_t          data[24];
@@ -126,13 +132,12 @@ typedef struct __attribute__((packed)) _meter_t {
     uint8_t  date_release[DATA_MAX_LEN];   /* date of release                    */
     uint8_t  date_release_len;             /* lenght of release date             */
     uint8_t  division_factor;              /* 00-0, 01-0.0, 10-0.00, 11-0.000    */
-    uint16_t battery_mv;
+    uint8_t  battery_level;
 } meter_t;
 
 meter_t meter;
 
 void get_serial_number_data();
 void get_date_release_data();
-uint8_t get_battery_device_level(uint16_t battery_mv);
 
 #endif /* SRC_INCLUDE_KASKAD_1_MT_H_ */

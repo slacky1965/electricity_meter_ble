@@ -286,7 +286,7 @@ _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
             adv_pv_data.pv.pid++;
             from32to24(adv_pv_data.pv.power, meter.power);
             adv_pv_data.pv.voltage = meter.voltage/10;
-            adv_pv_data.pv.battery_level = get_battery_device_level(meter.battery_mv);
+            adv_pv_data.pv.battery_level = meter.battery_level;
             if (config.save_data.encrypted) {
                 bthome_encrypt_pv_data_beacon();
             }
@@ -391,7 +391,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
     adv_pv_data.pv.voltage_id = BTHomeID_voltage;
     adv_pv_data.pv.voltage = meter.voltage;
     adv_pv_data.pv.battery_id = BTHomeID_battery;
-    adv_pv_data.pv.battery_level = get_battery_device_level(meter.battery_mv);
+    adv_pv_data.pv.battery_level = meter.battery_level;
 
 
     ///////////////////// Controller Initialization /////////////////////

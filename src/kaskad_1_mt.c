@@ -87,6 +87,7 @@ _attribute_ram_code_ static void set_command(command_t command) {
         case cmd_read_configure:
         case cmd_get_info:
         case cmd_test_error:
+        case cmd_resource_battery:
             request_pkt.pkt_len = 2 + sizeof(package_header_t) + 2;
             request_pkt.data[0] = checksum((uint8_t*)&request_pkt, request_pkt.pkt_len);
             request_pkt.data[1] = BOUNDARY;
@@ -568,24 +569,35 @@ _attribute_ram_code_ void get_configure_data() {
     }
 }
 
-_attribute_ram_code_ void get_info_data() {
+_attribute_ram_code_ void get_resbat_data() {
 
-    info_meter_data_t *info;
-    package_t          *pkt;
+    resbat_meter_data_t *resbat;
+    package_t           *pkt;
 
-    pkt = get_pkt_data(cmd_get_info);
+    pkt = get_pkt_data(cmd_resource_battery);
 
     if (pkt) {
-        info = (info_meter_data_t*)pkt->data;
+        resbat = (resbat_meter_data_t*)pkt->data;
+
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("Battery voltage: %u,%u\r\n", info->battery_mv/1000, info->battery_mv%1000);
+        printf("Resurs battery: %u.%u\r\n", (resbat->worktime*100)/resbat->lifetime,
+                                             ((resbat->worktime*100)%resbat->lifetime)*100/resbat->lifetime);
 #endif
-        if (meter.battery_mv != info->battery_mv) {
-            meter.battery_mv = info->battery_mv;
+        uint8_t battery_level = (resbat->worktime*100)/resbat->lifetime;
+
+        if (((resbat->worktime*100)%resbat->lifetime) >= (resbat->lifetime/2)) {
+            battery_level++;
+        }
+
+        if (meter.battery_level != battery_level) {
+            meter.battery_level = battery_level;
             pv_changed = true;
         }
+
     }
 }
+
+
 
 void pkt_test(command_t command) {
     package_t *pkt;
@@ -607,23 +619,11 @@ _attribute_ram_code_ void measure_meter() {
             get_date_release_data();
             first_start = false;
         }
-        get_info_data();                /* get battery voltage  */
+        get_resbat_data();              /* get resource battery */
         get_tariffs_data();             /* get 3 tariffs        */
         get_voltage_data();             /* get voltage net ~220 */
         get_power_data();               /* get power            */
     }
-}
-
-/* min 2400, max 3300 */
-_attribute_ram_code_ uint8_t get_battery_device_level(uint16_t battery_mv) {
-    uint8_t battery_level = 0;
-    if (battery_mv > 2400) {
-        battery_level = (battery_mv - 2400) / ((3300 - 2400) / 100);
-        if (battery_level > 100)
-            battery_level = 100;
-    }
-    return battery_level;
-
 }
 
 #endif
