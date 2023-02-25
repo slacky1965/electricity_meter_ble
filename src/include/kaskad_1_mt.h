@@ -1,9 +1,6 @@
 #ifndef SRC_INCLUDE_KASKAD_1_MT_H_
 #define SRC_INCLUDE_KASKAD_1_MT_H_
 
-#define PKT_BUFF_MAX_LEN     128        /* max len read from uart          */
-#define DATA_MAX_LEN         30         /* do not change!                  */
-
 typedef enum _command_t {
     cmd_open_channel         = 0x01,
     cmd_tariffs_data         = 0x05,
@@ -120,22 +117,6 @@ typedef struct __attribute__((packed)) _data31_meter_data_t {
     uint8_t          crc;
     uint8_t          stop;
 } data31_meter_data_t;
-
-typedef struct __attribute__((packed)) _meter_t {
-    uint32_t tariff_1;                     /* last value of tariff #1            */
-    uint32_t tariff_2;                     /* last value of tariff #2            */
-    uint32_t tariff_3;                     /* last value of tariff #3            */
-    uint32_t power;                        /* last value of power                */
-    uint16_t voltage;                      /* last value of voltage              */
-    uint8_t  serial_number[DATA_MAX_LEN];  /* serial number                      */
-    uint8_t  serial_number_len;            /* lenght of serial number            */
-    uint8_t  date_release[DATA_MAX_LEN];   /* date of release                    */
-    uint8_t  date_release_len;             /* lenght of release date             */
-    uint8_t  division_factor;              /* 00-0, 01-0.0, 10-0.00, 11-0.000    */
-    uint8_t  battery_level;
-} meter_t;
-
-meter_t meter;
 
 void get_serial_number_data();
 void get_date_release_data();

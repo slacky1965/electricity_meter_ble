@@ -23,8 +23,6 @@ _attribute_data_retention_ static uint8_t   package_buff[PKT_BUFF_MAX_LEN];
 _attribute_data_retention_ static uint8_t   first_start = true;
 _attribute_data_retention_ static pkt_error_t pkt_error_no;
 
-_attribute_data_retention_ meter_t meter = {0};
-
 _attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
   // skip 73 55 header (and 55 footer is beyond checksum anyway)
   const uint8_t* table = &src_buffer[2];
@@ -43,29 +41,6 @@ _attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer, uint8_t 
   }
 
   return crc;
-}
-
-_attribute_ram_code_ static uint32_t from24to32(const uint8_t *str) {
-
-    uint32_t value;
-
-    value = str[0] & 0xff;
-    value |= (str[1] << 8) & 0xff00;
-    value |= (str[2] << 16) & 0xff0000;
-
-    return value;
-}
-
-_attribute_ram_code_ static uint16_t divisor(const uint8_t division_factor) {
-
-    switch (division_factor & 0x03) {
-        case 0: return 1;
-        case 1: return 10;
-        case 2: return 100;
-        case 3: return 1000;
-    }
-
-    return 1;
 }
 
 _attribute_ram_code_ static void set_command(command_t command) {
@@ -216,10 +191,9 @@ _attribute_ram_code_ static void send_command(command_t command) {
 #endif
     } else {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            uint8_t *data = (uint8_t*)&request_pkt;
             printf("request pkt: 0x");
             for (int i = 0; i < len; i++) {
-                printf("%02x", data[i]);
+                printf("%02x", ((uint8_t*)&request_pkt)[i]);
             }
             printf("\r\n");
 #endif
@@ -580,7 +554,7 @@ _attribute_ram_code_ void get_resbat_data() {
         resbat = (resbat_meter_data_t*)pkt->data;
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("Resurs battery: %u.%u\r\n", (resbat->worktime*100)/resbat->lifetime,
+        printf("Resource battery: %u.%u\r\n", (resbat->worktime*100)/resbat->lifetime,
                                              ((resbat->worktime*100)%resbat->lifetime)*100/resbat->lifetime);
 #endif
         uint8_t battery_level = (resbat->worktime*100)/resbat->lifetime;
