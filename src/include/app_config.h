@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION                 0x12    /* BCD format (0x10 -> '1.0')   */
+#define VERSION                 0x13    /* BCD format (0x10 -> '1.0')   */
 #define ELECTRICITYMETER_ID     0xFEDA  /* uint16_t                     */
 #define BINDKEY_NOTIFY_ID       0xFEDB  /* uint16_t                     */
 #define SERIAL_NUMBER_ID        0xFEDC
@@ -24,6 +24,7 @@ extern "C" {
 #define KASKAD_11               2
 
 #define ELECTRICITY_TYPE        KASKAD_1_MT
+//#define ELECTRICITY_TYPE        KASKAD_11
 
 /************************ Advertising_Interval *************************************/
 
@@ -56,6 +57,14 @@ extern "C" {
 #define PA7_OUTPUT_ENABLE       OFF
 #define PA7_FUNC                AS_GPIO
 //#define PULL_WAKEUP_SRC_PA7     PM_PIN_UP_DOWN_FLOAT //PM_PIN_PULLUP_1M
+
+/************************* Configure VBAT GPIO ***************************************/
+#define GPIO_VBAT               GPIO_PC4
+#define PC4_INPUT_ENABLE        OFF
+#define PC4_OUTPUT_ENABLE       ON
+#define PC4_DATA_OUT            ON
+#define PC4_FUNC                AS_GPIO
+#define SHL_ADC_VBAT            9 //C4P
 
 /************************* For 512K Flash only ***************************************/
 /* Flash map:

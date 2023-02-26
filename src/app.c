@@ -7,6 +7,7 @@
 
 #include "app.h"
 #include "app_att.h"
+#include "app_adc.h"
 #include "cfg.h"
 #include "log.h"
 #include "ble.h"
@@ -21,7 +22,8 @@
 #define CONN_TIMEOUT        300         /* 5 min */
 #define RESET_WL_TIMEOUT    5           /* 5 sec */
 
-_attribute_data_retention_ uint32_t update_interval;
+_attribute_data_retention_ uint32_t measure_interval;
+_attribute_data_retention_ uint32_t battery_interval;
 _attribute_data_retention_ uint32_t conn_timeout;
 
 _attribute_data_retention_ uint32_t time_sec_tick;
@@ -76,10 +78,13 @@ void user_init_normal(void) {
     printf("Start user_init_normal()\r\n");
 #endif /* UART_PRINT_DEBUG_ENABLE */
 
+    adc_power_on_sar_adc(OFF);
 	random_generator_init();  //this is must
     init_config();
     init_ble();
-    update_interval  = 0; //clock_time();
+    battery_mv = get_battery_mv();
+    measure_interval  = 0;
+    battery_interval  = 0;
     reset_wl_begin = false;
     flush_buff_uart();
     app_uart_init();
@@ -123,12 +128,26 @@ void main_loop (void) {
 
     if(!ota_is_working) {
 
-        if ((time_sec - update_interval) > (config.measurement_period*60)) {
+        if ((time_sec - measure_interval) > (config.measurement_period*60)) {
 
             measure_meter();
 
-            update_interval = time_sec;
+            measure_interval = time_sec;
         }
+
+//        if ((time_sec - battery_interval) > CONN_TIMEOUT) {
+//            battery_mv = get_battery_mv();
+//            if (battery_mv != adv_pv_data.pv.voltage3_3) {
+//                if ((battery_mv > adv_pv_data.pv.voltage3_3 && (battery_mv - adv_pv_data.pv.voltage3_3) > 50) ||
+//                    (battery_mv < adv_pv_data.pv.voltage3_3 && (adv_pv_data.pv.voltage3_3 - battery_mv) > 50)) {
+//#if UART_PRINT_DEBUG_ENABLE
+//                    printf("New battery mv - %u, last battery mv - %u\r\n", battery_mv, adv_pv_data.pv.voltage3_3);
+//#endif /* UART_PRINT_DEBUG_ENABLE */
+//                   pv_changed = true;
+//                }
+//            }
+//            battery_interval = time_sec;
+//        }
 
         check_reset_wl();
 

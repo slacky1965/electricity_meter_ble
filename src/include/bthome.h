@@ -109,8 +109,10 @@ typedef struct __attribute__((packed)) _power_voltage_t {
     uint8_t  pid;           /* 0..255               */
     uint8_t  power_id;      /* BTHomeID_power       */
     uint8_t  power[3];      /* Power                */
-    uint8_t  voltage_id;    /* BTHomeID_voltage     */
-    uint16_t voltage;       /* Voltage 220V         */
+    uint8_t  voltage220_id; /* BTHomeID_voltage     */
+    uint16_t voltage220;    /* Voltage 220V         */
+//    uint8_t  voltage3_3_id; /* BTHomeID_voltage_001 */
+//    uint16_t voltage3_3;    /* Voltage 3.3V TB-04   */
     uint8_t  battery_id;    /* BTHomeID_battery     */
     uint8_t  battery_level; /* 0-100%               */
 } power_voltage_t;

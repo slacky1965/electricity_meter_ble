@@ -5,6 +5,12 @@
 
 #include "app_uart.h"
 
+#if (ELECTRICITY_TYPE == KASKAD_1_MT)
+#define BAUDRATE    9600
+#elif (ELECTRICITY_TYPE == KASKAD_11)
+#define BAUDRATE    2400
+#endif
+
 _attribute_data_retention_ uart_data_t rec_buff = {0,  {0, } };
 _attribute_data_retention_ uart_data_t trans_buff = {0,   {0, } };
 _attribute_data_retention_ uint8_t     uart_buff[UART_BUFF_SIZE];
@@ -17,7 +23,7 @@ _attribute_ram_code_ uint8_t available_buff_uart() {
     return false;
 }
 
-_attribute_ram_code_ static size_t get_queue_len_buff_uart() {
+_attribute_ram_code_ size_t get_queue_len_buff_uart() {
    return (uart_head - uart_tail) & (UART_BUFF_MASK);
 }
 
@@ -62,13 +68,14 @@ void app_uart_init() {
 
     uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 
-    //baud rate: 9600
-    #if (CLOCK_SYS_CLOCK_HZ == 16000000)
-        uart_init(118, 13, PARITY_NONE, STOP_BIT_ONE);
-    #elif (CLOCK_SYS_CLOCK_HZ == 24000000)
-        uart_init(249, 9, PARITY_NONE, STOP_BIT_ONE);
-    #endif
+//    //baud rate: 9600
+//#if (CLOCK_SYS_CLOCK_HZ == 16000000)
+//        uart_init(118, 13, PARITY_NONE, STOP_BIT_ONE);
+//#elif (CLOCK_SYS_CLOCK_HZ == 24000000)
+//        uart_init(249, 9, PARITY_NONE, STOP_BIT_ONE);
+//#endif
 
+    uart_init_baudrate(BAUDRATE, CLOCK_SYS_CLOCK_HZ, PARITY_NONE, STOP_BIT_ONE);
 
     uart_dma_enable(1, 1);  //uart data in hardware buffer moved by dma, so we need enable them first
 

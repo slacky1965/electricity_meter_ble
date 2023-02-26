@@ -9,6 +9,7 @@
 #include "ble.h"
 #include "app.h"
 #include "app_att.h"
+#include "app_adc.h"
 #include "cfg.h"
 #include "cmd_parser.h"
 
@@ -285,8 +286,9 @@ _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
             pv_changed = false;
             adv_pv_data.pv.pid++;
             from32to24(adv_pv_data.pv.power, meter.power);
-            adv_pv_data.pv.voltage = meter.voltage/10;
+            adv_pv_data.pv.voltage220 = meter.voltage/10;
             adv_pv_data.pv.battery_level = meter.battery_level;
+//            adv_pv_data.pv.voltage3_3 = battery_mv;
             if (config.save_data.encrypted) {
                 bthome_encrypt_pv_data_beacon();
             }
@@ -388,11 +390,14 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 
     adv_pv_data.pv.power_id = BTHomeID_power;
     from32to24(adv_pv_data.pv.power, meter.power);
-    adv_pv_data.pv.voltage_id = BTHomeID_voltage;
-    adv_pv_data.pv.voltage = meter.voltage;
+
+    adv_pv_data.pv.voltage220_id = BTHomeID_voltage;
+    adv_pv_data.pv.voltage220 = meter.voltage;
     adv_pv_data.pv.battery_id = BTHomeID_battery;
     adv_pv_data.pv.battery_level = meter.battery_level;
 
+//    adv_pv_data.pv.voltage3_3_id = BTHomeID_voltage_001;
+//    adv_pv_data.pv.voltage3_3 = battery_mv;
 
     ///////////////////// Controller Initialization /////////////////////
     blc_ll_initBasicMCU();                      //mandatory
@@ -443,6 +448,8 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
     if (config.save_data.encrypted) {
         bthome_beacon_init();
     }
+
+    pv_changed = tariff_changed = true;
 
     ev_adv_timeout(0,0,0);
 }
