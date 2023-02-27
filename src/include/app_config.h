@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION                 0x13    /* BCD format (0x10 -> '1.0')   */
+#define VERSION                 0x12    /* BCD format (0x10 -> '1.0')   */
 #define ELECTRICITYMETER_ID     0xFEDA  /* uint16_t                     */
 #define BINDKEY_NOTIFY_ID       0xFEDB  /* uint16_t                     */
 #define SERIAL_NUMBER_ID        0xFEDC
@@ -23,7 +23,8 @@ extern "C" {
 #define KASKAD_1_MT             1
 #define KASKAD_11               2
 
-#define ELECTRICITY_TYPE        KASKAD_1_MT
+/* Set type in makefile! */
+//#define ELECTRICITY_TYPE        KASKAD_1_MT
 //#define ELECTRICITY_TYPE        KASKAD_11
 
 /************************ Advertising_Interval *************************************/
