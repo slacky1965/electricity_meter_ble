@@ -113,8 +113,10 @@ typedef struct __attribute__((packed)) _power_voltage_t {
     uint16_t voltage220;    /* Voltage 220V         */
 //    uint8_t  voltage3_3_id; /* BTHomeID_voltage_001 */
 //    uint16_t voltage3_3;    /* Voltage 3.3V TB-04   */
+#if (ELECTRICITY_TYPE == KASKAD_1_MT)
     uint8_t  battery_id;    /* BTHomeID_battery     */
     uint8_t  battery_level; /* 0-100%               */
+#endif
 } power_voltage_t;
 
 typedef struct __attribute__((packed)) _bthome_nonce_t {
