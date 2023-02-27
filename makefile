@@ -20,6 +20,11 @@ SDK_PATH := ./SDK
 # Set Project Name
 PROJECT_NAME := electricity_meter
 
+# Set Electricity Meter Type
+EMETER := KASKAD_1_MT
+#EMETER := KASKAD_11
+ELECTRICITY_TYPE := 'ELECTRICITY_TYPE=$(EMETER)'
+
 # Set the serial port number for downloading the firmware
 DOWNLOAD_PORT := COM4
 
@@ -27,7 +32,7 @@ SRC_PATH := ./src
 OUT_PATH := ./out
 UTILS_PATH := ./utils
 MAKE_INCLUDES := ./make
-VERSION := V$(shell awk -F " " '/VERSION/ {gsub("0x",""); print $$3/10.0}' $(SRC_PATH)/include/app_config.h)
+VERSION := V$(shell awk -F " " '/VERSION/ {gsub("0x",""); printf "%.1f", $$3/10.0}' $(SRC_PATH)/include/app_config.h)
 
 TL_Check = $(UTILS_PATH)/tl_check_fw.py
 
@@ -58,7 +63,8 @@ GCC_FLAGS := \
 -finline-small-functions \
 -std=gnu99 \
 -fshort-wchar \
--fms-extensions 
+-fms-extensions \
+-D$(ELECTRICITY_TYPE)
 
 #INCLUDE_PATHS := -I$(SDK_PATH) -I$(PROJECT_PATH)/include
 INCLUDE_PATHS := -I$(SDK_PATH) -I$(SDK_PATH)/drivers/8258 -I$(SRC_PATH)/include
@@ -103,6 +109,7 @@ go:
 	
 erase-flash:
 	@python3 $(UTILS_PATH)/TlsrComProg.py -p$(DOWNLOAD_PORT) -f $(UTILS_PATH)/floader.bin ea
+#	@python3 $(UTILS_PATH)/TlsrPgm.py -p$(DOWNLOAD_PORT) -t50 -a2550 ea
 	
 
 # Main-build Target
@@ -128,7 +135,7 @@ $(BIN_FILE): $(ELF_FILE)
 	@python3 $(TL_Check) $(BIN_FILE)
 	@echo 'Finished building: $@'
 	@echo ' '
-	@cp $(BIN_FILE) $(PROJECT_NAME)_$(VERSION).bin
+	@cp $(BIN_FILE) $(PROJECT_NAME)_$(EMETER)_$(VERSION).bin
 
 sizedummy: $(ELF_FILE)
 	@echo 'Invoking: Print Size'
