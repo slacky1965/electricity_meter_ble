@@ -287,7 +287,9 @@ _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
             adv_pv_data.pv.pid++;
             from32to24(adv_pv_data.pv.power, meter.power);
             adv_pv_data.pv.voltage220 = meter.voltage/10;
+#if (ELECTRICITY_TYPE == KASKAD_1_MT)
             adv_pv_data.pv.battery_level = meter.battery_level;
+#endif
 //            adv_pv_data.pv.voltage3_3 = battery_mv;
             if (config.save_data.encrypted) {
                 bthome_encrypt_pv_data_beacon();
@@ -393,8 +395,10 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
 
     adv_pv_data.pv.voltage220_id = BTHomeID_voltage;
     adv_pv_data.pv.voltage220 = meter.voltage;
+#if (ELECTRICITY_TYPE == KASKAD_1_MT)
     adv_pv_data.pv.battery_id = BTHomeID_battery;
     adv_pv_data.pv.battery_level = meter.battery_level;
+#endif
 
 //    adv_pv_data.pv.voltage3_3_id = BTHomeID_voltage_001;
 //    adv_pv_data.pv.voltage3_3 = battery_mv;
