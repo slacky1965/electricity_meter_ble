@@ -60,7 +60,7 @@ typedef struct __attribute__((packed)) _main_notify_t {
     uint16_t measurement_period;
     uint8_t  version;
     uint8_t  encrypted;
-    uint16_t address;
+    uint32_t address;
 } main_notify_t;
 
 typedef struct __attribute__((packed)) _bindkey_notify_t {

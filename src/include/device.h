@@ -4,11 +4,26 @@
 #define PKT_BUFF_MAX_LEN     128        /* max len read from uart          */
 #define DATA_MAX_LEN         30         /* do not change!                  */
 
+#if (!ELECTRICITY_TYPE)
+#include "kaskad_1_mt.h"
+#include "kaskad_11.h"
+#include "mercury_206.h"
+#endif
+
 #if (ELECTRICITY_TYPE == KASKAD_1_MT)
 #include "kaskad_1_mt.h"
 #elif (ELECTRICITY_TYPE == KASKAD_11)
 #include "kaskad_11.h"
+#elif (ELECTRICITY_TYPE == MERCURY_206)
+#include "mercury_206.h"
 #endif
+
+typedef enum _device_type_t {
+    device_undefined = 0,
+    device_kaskad_1_mt,
+    device_kaskad_11,
+    device_mercury_206
+} device_type_t;
 
 typedef enum _pkt_error_t {
     PKT_OK  = 0,
@@ -25,16 +40,16 @@ typedef enum _pkt_error_t {
 } pkt_error_t;
 
 typedef struct __attribute__((packed)) _meter_t {
-    uint32_t tariff_1;                     /* last value of tariff #1            */
-    uint32_t tariff_2;                     /* last value of tariff #2            */
-    uint32_t tariff_3;                     /* last value of tariff #3            */
-    uint32_t power;                        /* last value of power                */
-    uint16_t voltage;                      /* last value of voltage              */
-    uint8_t  serial_number[DATA_MAX_LEN];  /* serial number                      */
-    uint8_t  serial_number_len;            /* lenght of serial number            */
-    uint8_t  date_release[DATA_MAX_LEN];   /* date of release                    */
-    uint8_t  date_release_len;             /* lenght of release date             */
-    uint8_t  division_factor;              /* 00-0, 01-0.0, 10-0.00, 11-0.000    */
+    uint32_t tariff_1;                      /* last value of tariff #1            */
+    uint32_t tariff_2;                      /* last value of tariff #2            */
+    uint32_t tariff_3;                      /* last value of tariff #3            */
+    uint32_t power;                         /* last value of power                */
+    uint16_t voltage;                       /* last value of voltage              */
+    uint8_t  serial_number[DATA_MAX_LEN+1]; /* serial number                      */
+    uint8_t  serial_number_len;             /* lenght of serial number            */
+    uint8_t  date_release[DATA_MAX_LEN+1];  /* date of release                    */
+    uint8_t  date_release_len;              /* lenght of release date             */
+    uint8_t  division_factor;               /* 00-0, 01-0.0, 10-0.00, 11-0.000    */
     uint8_t  battery_level;
 } meter_t;
 

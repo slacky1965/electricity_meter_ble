@@ -7,6 +7,10 @@
 #include "app_uart.h"
 #include "app.h"
 
+#if (!ELECTRICITY_TYPE)
+#define ELECTRICITY_TYPE  KASKAD_1_MT
+#endif
+
 #if (ELECTRICITY_TYPE == KASKAD_1_MT)
 
 #define START       0x73

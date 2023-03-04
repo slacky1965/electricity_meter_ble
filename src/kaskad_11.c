@@ -7,6 +7,10 @@
 #include "app_uart.h"
 #include "app.h"
 
+#if (!ELECTRICITY_TYPE)
+#define ELECTRICITY_TYPE  KASKAD_11
+#endif
+
 #if (ELECTRICITY_TYPE == KASKAD_11)
 
 #define LEVEL_READ 0x02
@@ -196,7 +200,7 @@ _attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
     return pkt_error_no;
 }
 
-_attribute_ram_code_ static void set_header(command_t cmd) {
+_attribute_ram_code_ static void set_header(uint8_t cmd) {
 
     memset(&request_pkt, 0, sizeof(package_t));
 
@@ -427,6 +431,7 @@ _attribute_ram_code_ void measure_meter() {
             get_amps_data();                /* get amps and check phases num */
             get_serial_number_data();
             get_date_release_data();
+            first_start = false;
         }
 
         if (phases3) {

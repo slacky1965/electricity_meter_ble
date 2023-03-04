@@ -22,6 +22,7 @@ extern "C" {
 
 #define KASKAD_1_MT             1
 #define KASKAD_11               2
+#define MERCURY_206             3
 
 /* Set type in makefile! */
 //#define ELECTRICITY_TYPE        KASKAD_1_MT

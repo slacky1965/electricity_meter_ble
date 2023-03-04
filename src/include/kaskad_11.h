@@ -21,7 +21,7 @@ typedef struct __attribute__((packed)) _package_t {
     uint8_t  len;
     uint8_t  cmd;
     uint16_t address;
-    uint8_t  data[PKT_BUFF_MAX_LEN];
+    uint8_t  data[DATA_MAX_LEN];
 } package_t;
 
 typedef struct __attribute__((packed)) _pkt_release_t {

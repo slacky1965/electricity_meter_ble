@@ -111,6 +111,8 @@ void cmd_parser(void * p) {
         config.save_data.address_device = 0;
         if (len) config.save_data.address_device |= (in_data[len--] & 0xFF);
         if (len) config.save_data.address_device |= ((in_data[len--] << 8) & 0xFF00);
+        if (len) config.save_data.address_device |= ((in_data[len--] << 16) & 0xFF0000);
+        if (len) config.save_data.address_device |= ((in_data[len--] << 24) & 0xFF000000);
         write_config();
         measure_meter();
         memset(&serial_number_notify, 0, sizeof(serial_number_notify_t));
