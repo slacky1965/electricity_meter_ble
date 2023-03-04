@@ -4,20 +4,6 @@
 #define PKT_BUFF_MAX_LEN     128        /* max len read from uart          */
 #define DATA_MAX_LEN         30         /* do not change!                  */
 
-#if (!ELECTRICITY_TYPE)
-#include "kaskad_1_mt.h"
-#include "kaskad_11.h"
-#include "mercury_206.h"
-#endif
-
-#if (ELECTRICITY_TYPE == KASKAD_1_MT)
-#include "kaskad_1_mt.h"
-#elif (ELECTRICITY_TYPE == KASKAD_11)
-#include "kaskad_11.h"
-#elif (ELECTRICITY_TYPE == MERCURY_206)
-#include "mercury_206.h"
-#endif
-
 typedef enum _device_type_t {
     device_undefined = 0,
     device_kaskad_1_mt,
@@ -51,14 +37,21 @@ typedef struct __attribute__((packed)) _meter_t {
     uint8_t  date_release_len;              /* lenght of release date             */
     uint8_t  division_factor;               /* 00-0, 01-0.0, 10-0.00, 11-0.000    */
     uint8_t  battery_level;
+    void   (*measure_meter) (void);
+    void   (*get_serial_number_data) (void);
+    void   (*get_date_release_data) (void);
 } meter_t;
 
 extern uint8_t tariff_changed;
 extern uint8_t pv_changed;
 extern meter_t meter;
+extern uint8_t release_month;
+extern uint8_t release_year;
+extern uint8_t new_start;
+extern pkt_error_t pkt_error_no;
 
-void measure_meter();
 uint16_t divisor(const uint8_t division_factor);
 uint32_t from24to32(const uint8_t *str);
+void set_device_type();
 
 #endif /* SRC_INCLUDE_DEVICE_H_ */

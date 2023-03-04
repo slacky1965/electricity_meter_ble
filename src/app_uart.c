@@ -4,6 +4,11 @@
 #include "drivers/8258/uart.h"
 
 #include "app_uart.h"
+#include "cfg.h"
+#include "device.h"
+
+
+static uint32_t baudrate;
 
 #if (ELECTRICITY_TYPE == KASKAD_1_MT || ELECTRICITY_TYPE == MERCURY_206)
 #define BAUDRATE    9600
@@ -68,14 +73,20 @@ void app_uart_init() {
 
     uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 
-//    //baud rate: 9600
-//#if (CLOCK_SYS_CLOCK_HZ == 16000000)
-//        uart_init(118, 13, PARITY_NONE, STOP_BIT_ONE);
-//#elif (CLOCK_SYS_CLOCK_HZ == 24000000)
-//        uart_init(249, 9, PARITY_NONE, STOP_BIT_ONE);
-//#endif
+    switch (config.save_data.device_type) {
+        case device_undefined:
+            config.save_data.device_type = device_kaskad_1_mt;
+            baudrate = 9600;
+            break;
+        case device_kaskad_1_mt:
+        case device_mercury_206:
+            baudrate = 9600;
+            break;
+        case device_kaskad_11:
+            baudrate = 2400;
+    }
 
-    uart_init_baudrate(BAUDRATE, CLOCK_SYS_CLOCK_HZ, PARITY_NONE, STOP_BIT_ONE);
+    uart_init_baudrate(baudrate, CLOCK_SYS_CLOCK_HZ, PARITY_NONE, STOP_BIT_ONE);
 
     uart_dma_enable(1, 1);  //uart data in hardware buffer moved by dma, so we need enable them first
 

@@ -53,7 +53,7 @@ void cmd_parser(void * p) {
         serial_number_notify.id = SERIAL_NUMBER_ID;
         /* check of serial number */
         if (meter.serial_number_len == 0) {
-            get_serial_number_data();
+            meter.get_serial_number_data();
         }
         if (meter.serial_number_len) {
             memcpy(serial_number_notify.serial_number,
@@ -67,7 +67,7 @@ void cmd_parser(void * p) {
         date_release_notify.id = DATE_RELEASE_ID;
         /* check date of release */
         if (meter.date_release_len == 0) {
-            get_date_release_data();
+            meter.get_date_release_data();
         }
         if (meter.date_release_len) {
             memcpy(date_release_notify.date_release,
@@ -114,12 +114,12 @@ void cmd_parser(void * p) {
         if (len) config.save_data.address_device |= ((in_data[len--] << 16) & 0xFF0000);
         if (len) config.save_data.address_device |= ((in_data[len--] << 24) & 0xFF000000);
         write_config();
-        measure_meter();
+        meter.measure_meter();
         memset(&serial_number_notify, 0, sizeof(serial_number_notify_t));
         serial_number_notify.id = SERIAL_NUMBER_ID;
         /* check of serial number */
         if (meter.serial_number_len == 0) {
-            get_serial_number_data();
+            meter.get_serial_number_data();
         }
         if (meter.serial_number_len) {
             memcpy(serial_number_notify.serial_number,
@@ -133,7 +133,7 @@ void cmd_parser(void * p) {
         date_release_notify.id = DATE_RELEASE_ID;
         /* check date of release */
         if (meter.date_release_len == 0) {
-            get_date_release_data();
+            meter.get_date_release_data();
         }
         if (meter.date_release_len) {
             memcpy(date_release_notify.date_release,

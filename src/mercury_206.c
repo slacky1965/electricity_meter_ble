@@ -3,24 +3,15 @@
 #include "stack/ble/ble.h"
 
 #include "device.h"
+#include "mercury_206.h"
 #include "cfg.h"
 #include "app_uart.h"
 #include "app.h"
 
-#if (!ELECTRICITY_TYPE)
-#define ELECTRICITY_TYPE MERCURY_206
-#endif
+_attribute_data_retention_ static m206_package_t m206_request_pkt;
+_attribute_data_retention_ static m206_package_t m206_response_pkt;
 
-#if (ELECTRICITY_TYPE == MERCURY_206)
-
-_attribute_data_retention_ static package_t request_pkt;
-_attribute_data_retention_ static package_t response_pkt;
-_attribute_data_retention_ static uint8_t   first_start = true;
-_attribute_data_retention_ static uint8_t   release_month;
-_attribute_data_retention_ static uint8_t   release_year;
-_attribute_data_retention_ static pkt_error_t pkt_error_no;
-
-_attribute_ram_code_ static uint16_t checksum(const uint8_t *src_buffer, uint8_t len) {
+_attribute_ram_code_ static uint16_t m206_checksum(const uint8_t *src_buffer, uint8_t len) {
 
     const uint16_t generator = 0xa001;
 
@@ -60,7 +51,7 @@ _attribute_ram_code_ static uint8_t from_bcd_to_dec(uint8_t bcd) {
     return dec;
 }
 
-_attribute_ram_code_ static uint8_t send_command(package_t *pkt) {
+_attribute_ram_code_ static uint8_t m206_send_command(m206_package_t *pkt) {
 
     size_t len;
 
@@ -98,13 +89,13 @@ _attribute_ram_code_ static uint8_t send_command(package_t *pkt) {
     return len;
 }
 
-_attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
+_attribute_ram_code_ static pkt_error_t m206_response_meter(uint8_t command) {
 
     uint8_t load_size, load_len = 0;
     pkt_error_no = PKT_ERR_TIMEOUT;
-    uint8_t *buff = (uint8_t*)&response_pkt;
+    uint8_t *buff = (uint8_t*)&m206_response_pkt;
 
-    memset(buff, 0, sizeof(package_t));
+    memset(buff, 0, sizeof(m206_package_t));
 
     for (uint8_t attempt = 0; attempt < 3; attempt ++) {
         load_size = 0;
@@ -125,13 +116,13 @@ _attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
 
     if (load_size) {
         if (load_size > 6) {
-            response_pkt.pkt_len = load_size;
-            uint16_t crc = checksum((uint8_t*)&response_pkt, load_size-2);
-            uint16_t crc_pkt = ((uint8_t*)&response_pkt)[load_size-2] & 0xff;
-            crc_pkt |= (((uint8_t*)&response_pkt)[load_size-1] << 8) & 0xff00;
+            m206_response_pkt.pkt_len = load_size;
+            uint16_t crc = m206_checksum((uint8_t*)&m206_response_pkt, load_size-2);
+            uint16_t crc_pkt = ((uint8_t*)&m206_response_pkt)[load_size-2] & 0xff;
+            crc_pkt |= (((uint8_t*)&m206_response_pkt)[load_size-1] << 8) & 0xff00;
             if (crc == crc_pkt) {
-                if (reverse32(response_pkt.address) == config.save_data.address_device) {
-                    if (response_pkt.cmd == command) {
+                if (reverse32(m206_response_pkt.address) == config.save_data.address_device) {
+                    if (m206_response_pkt.cmd == command) {
                         pkt_error_no = PKT_OK;
                     } else {
                         pkt_error_no = PKT_ERR_DIFFERENT_COMMAND;
@@ -186,17 +177,17 @@ _attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
     return pkt_error_no;
 }
 
-_attribute_ram_code_ static void set_command(uint8_t cmd) {
+_attribute_ram_code_ static void m206_set_command(uint8_t cmd) {
 
-    memset(&request_pkt, 0, sizeof(package_t));
+    memset(&m206_request_pkt, 0, sizeof(m206_package_t));
 
-    request_pkt.address = reverse32(config.save_data.address_device);
-    request_pkt.cmd = cmd;
-    request_pkt.pkt_len = 5;
-    uint16_t crc = checksum((uint8_t*)&request_pkt, request_pkt.pkt_len);
-    request_pkt.data[0] = crc & 0xff;
-    request_pkt.data[1] = (crc >> 8) & 0xff;
-    request_pkt.pkt_len += 2;
+    m206_request_pkt.address = reverse32(config.save_data.address_device);
+    m206_request_pkt.cmd = cmd;
+    m206_request_pkt.pkt_len = 5;
+    uint16_t crc = m206_checksum((uint8_t*)&m206_request_pkt, m206_request_pkt.pkt_len);
+    m206_request_pkt.data[0] = crc & 0xff;
+    m206_request_pkt.data[1] = (crc >> 8) & 0xff;
+    m206_request_pkt.pkt_len += 2;
 
 }
 
@@ -213,13 +204,13 @@ _attribute_ram_code_ static uint32_t tariff_from_bcd(uint32_t tariff_bcd) {
     return tariff_dec;
 }
 
-_attribute_ram_code_ static void get_tariffs_data() {
+_attribute_ram_code_ static void m206_get_tariffs_data() {
 
-    set_command(cmd_tariffs_data);
+    m206_set_command(cmd_m206_tariffs_data);
 
-    if (send_command(&request_pkt)) {
-        if (response_meter(cmd_tariffs_data) == PKT_OK) {
-            pkt_tariffs_t *pkt_tariffs = (pkt_tariffs_t*)&response_pkt;
+    if (m206_send_command(&m206_request_pkt)) {
+        if (m206_response_meter(cmd_m206_tariffs_data) == PKT_OK) {
+            m206_pkt_tariffs_t *pkt_tariffs = (m206_pkt_tariffs_t*)&m206_response_pkt;
             uint32_t tariff1 = tariff_from_bcd(pkt_tariffs->tariff_1);
             uint32_t tariff2 = tariff_from_bcd(pkt_tariffs->tariff_2);
             uint32_t tariff3 = tariff_from_bcd(pkt_tariffs->tariff_3);
@@ -252,13 +243,13 @@ _attribute_ram_code_ static void get_tariffs_data() {
     }
 }
 
-_attribute_ram_code_ static void get_net_params_data() {
+_attribute_ram_code_ static void m206_get_net_params_data() {
 
-    set_command(cmd_net_params);
+    m206_set_command(cmd_m206_net_params);
 
-    if (send_command(&request_pkt)) {
-        if (response_meter(cmd_net_params) == PKT_OK) {
-            pkt_net_params_t *pkt_net_params = (pkt_net_params_t*)&response_pkt;
+    if (m206_send_command(&m206_request_pkt)) {
+        if (m206_response_meter(cmd_m206_net_params) == PKT_OK) {
+            m206_pkt_net_params_t *pkt_net_params = (m206_pkt_net_params_t*)&m206_response_pkt;
             uint32_t power = 0;
             power += from_bcd_to_dec(pkt_net_params->power[0]) * 10000;
             power += from_bcd_to_dec(pkt_net_params->power[1]) * 100;
@@ -290,13 +281,13 @@ _attribute_ram_code_ static void get_net_params_data() {
     }
 }
 
-_attribute_ram_code_ static void get_resbat_data() {
+_attribute_ram_code_ static void m206_get_resbat_data() {
 
-    set_command(cmd_running_time);
+    m206_set_command(cmd_m206_running_time);
 
-    if (send_command(&request_pkt)) {
-        if (response_meter(cmd_running_time) == PKT_OK) {
-            pkt_running_time_t *pkt_running_time = (pkt_running_time_t*)&response_pkt;
+    if (m206_send_command(&m206_request_pkt)) {
+        if (m206_response_meter(cmd_m206_running_time) == PKT_OK) {
+            m206_pkt_running_time_t *pkt_running_time = (m206_pkt_running_time_t*)&m206_response_pkt;
             printf("tl: %02u%02u%02u\r\n", from_bcd_to_dec(pkt_running_time->tl[0]),
                                            from_bcd_to_dec(pkt_running_time->tl[1]),
                                            from_bcd_to_dec(pkt_running_time->tl[2]));
@@ -307,13 +298,13 @@ _attribute_ram_code_ static void get_resbat_data() {
     }
 }
 
-_attribute_ram_code_ void get_date_release_data() {
+_attribute_ram_code_ void m206_get_date_release_data() {
 
-    set_command(cmd_date_release);
+    m206_set_command(cmd_m206_date_release);
 
-    if (send_command(&request_pkt)) {
-        if (response_meter(cmd_date_release) == PKT_OK) {
-            pkt_release_t *pkt_release = (pkt_release_t*)&response_pkt;
+    if (m206_send_command(&m206_request_pkt)) {
+        if (m206_response_meter(cmd_m206_date_release) == PKT_OK) {
+            m206_pkt_release_t *pkt_release = (m206_pkt_release_t*)&m206_response_pkt;
             release_month = from_bcd_to_dec(pkt_release->date[1]);
             release_year = from_bcd_to_dec(pkt_release->date[2]);
             meter.date_release_len = sprintf((char*)meter.date_release, "%02u.%02u.20%02u",
@@ -327,13 +318,13 @@ _attribute_ram_code_ void get_date_release_data() {
 }
 
 
-_attribute_ram_code_ uint8_t get_serial_number_data() {
+_attribute_ram_code_ uint8_t m206_get_serial_number_data() {
 
-    set_command(cmd_serial_number);
+    m206_set_command(cmd_m206_serial_number);
 
-    if (send_command(&request_pkt)) {
-        if (response_meter(cmd_serial_number) == PKT_OK) {
-            pkt_serial_num_t *pkt_serial_num = (pkt_serial_num_t*)&response_pkt;
+    if (m206_send_command(&m206_request_pkt)) {
+        if (m206_response_meter(cmd_m206_serial_number) == PKT_OK) {
+            m206_pkt_serial_num_t *pkt_serial_num = (m206_pkt_serial_num_t*)&m206_response_pkt;
             meter.serial_number_len = sprintf((char*)meter.serial_number, "%u", pkt_serial_num->addr);
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("serial number: %08x (%u)\r\n", pkt_serial_num->addr, pkt_serial_num->addr);
@@ -345,18 +336,16 @@ _attribute_ram_code_ uint8_t get_serial_number_data() {
     return false;
 }
 
-_attribute_ram_code_ void measure_meter() {
+_attribute_ram_code_ void m206_measure_meter() {
 
-    if (get_serial_number_data()) {
-        if (first_start) {
-            get_date_release_data();
-            first_start = false;
+    if (m206_get_serial_number_data()) {
+        if (new_start) {
+            m206_get_date_release_data();
+            new_start = false;
         }
-        get_net_params_data();
-        get_tariffs_data();
-        get_resbat_data();
+        m206_get_net_params_data();
+        m206_get_tariffs_data();
+        m206_get_resbat_data();
     }
 }
 
-
-#endif

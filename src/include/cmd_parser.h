@@ -9,7 +9,8 @@ enum {
     CMD_SET_BINDKEY         = 0xF5, /* set secure bind key            */
     CMD_RESET_BINDKEY       = 0xF6, /* reset bind key                 */
     CMD_SET_ADDRESS         = 0xF7, /* set device address             */
-    CMD_CLEAR_CFG           = 0XF8  /* set dedfault config            */
+    CMD_CLEAR_CFG           = 0XF8, /* set dedfault config            */
+    CMD_SET_DEVICE_TYPE     = 0xF9  /* set device type                */
 } cmd_key;
 
 void cmd_parser(void * p);
