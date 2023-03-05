@@ -397,7 +397,7 @@ _attribute_ram_code_ void get_date_release_data_kaskad11() {
     }
 }
 
-_attribute_ram_code_ uint8_t get_serial_number_data_kaskad11() {
+_attribute_ram_code_ void get_serial_number_data_kaskad11() {
 
     set_header(cmd_serial_number);
 
@@ -412,11 +412,8 @@ _attribute_ram_code_ uint8_t get_serial_number_data_kaskad11() {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("Serial Number: %s\r\n", meter.serial_number);
 #endif
-            return true;
         }
     }
-
-    return false;
 }
 
 _attribute_ram_code_ void measure_meter_kaskad11() {
