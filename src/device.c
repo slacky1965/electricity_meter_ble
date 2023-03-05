@@ -3,7 +3,6 @@
 #include "stack/ble/ble.h"
 
 #include "device.h"
-#include "mercury_206.h"
 #include "cfg.h"
 
 _attribute_data_retention_ uint8_t  tariff_changed = true;
@@ -56,9 +55,9 @@ _attribute_ram_code_ void set_device_type(device_type_t type) {
             break;
         case device_mercury_206:
             config.save_data.device_type = device_mercury_206;
-            meter.measure_meter = m206_measure_meter;
-            meter.get_date_release_data = m206_get_date_release_data;
-            meter.get_serial_number_data = m206_get_serial_number_data;
+            meter.measure_meter = measure_meter_mercury206;
+            meter.get_date_release_data = get_date_release_data_mercury206;
+            meter.get_serial_number_data = get_serial_number_data_mercury206;
             break;
         default:
             config.save_data.device_type = device_kaskad_1_mt;
