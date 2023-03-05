@@ -155,6 +155,6 @@ _attribute_ram_code_ void clear_config() {
     config.measurement_period = MEASUREMENT_PERIOD;
     write_config();
     tariff_changed = true;
-    pv_changed = true;
+    pva_changed = true;
 }
 

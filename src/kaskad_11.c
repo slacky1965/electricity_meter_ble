@@ -321,7 +321,7 @@ _attribute_ram_code_ static void get_voltage_data() {
             pkt_voltage_t *pkt_voltage = (pkt_voltage_t*)&response_pkt;
             if (meter.voltage != pkt_voltage->voltage) {
                 meter.voltage = pkt_voltage->voltage;
-                pv_changed = true;
+                pva_changed = true;
                 voltage_notify = NOTIFY_MAX;
             }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
@@ -343,7 +343,7 @@ _attribute_ram_code_ static void get_power_data() {
             uint32_t power = from24to32(pkt_power->power);
             if (meter.power != power) {
                 meter.power = power;
-                pv_changed = true;
+                pva_changed = true;
                 power_notify = NOTIFY_MAX;
             }
 

@@ -44,7 +44,7 @@ typedef struct __attribute__((packed)) _meter_t {
 } meter_t;
 
 extern uint8_t tariff_changed;
-extern uint8_t pv_changed;
+extern uint8_t pva_changed;
 extern meter_t meter;
 extern uint8_t release_month;
 extern uint8_t release_year;

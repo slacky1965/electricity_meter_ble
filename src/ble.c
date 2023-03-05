@@ -15,9 +15,9 @@
 
 _attribute_data_retention_ uint8_t              ble_name[BLE_NAME_SIZE];
 _attribute_data_retention_ adv_tariff_t         adv_tariff_data;
-_attribute_data_retention_ adv_power_voltage_t  adv_pv_data;
+_attribute_data_retention_ adv_power_voltage_amps_t  adv_pva_data;
 _attribute_data_retention_ adv_crypt_tariff_t   adv_crypt_tariff_data;
-_attribute_data_retention_ adv_crypt_power_voltage_t  adv_crypt_pv_data;
+_attribute_data_retention_ adv_crypt_power_voltage_amps_t  adv_crypt_pva_data;
 _attribute_data_retention_ main_notify_t        main_notify;
 _attribute_data_retention_ bindkey_notify_t     bindkey_notify;
 _attribute_data_retention_ serial_number_notify_t serial_number_notify;
@@ -282,23 +282,22 @@ void ev_adv_timeout(uint8_t e, uint8_t *p, int n) {
 _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
     (void) p;
     if (adv_counter & 1) {
-        if (pv_changed) {
-            pv_changed = false;
-            adv_pv_data.pv.pid++;
-            from32to24(adv_pv_data.pv.power, meter.power);
-            adv_pv_data.pv.voltage220 = meter.voltage/10;
-#if (ELECTRICITY_TYPE == KASKAD_1_MT)
-            adv_pv_data.pv.battery_level = meter.battery_level;
-#endif
-//            adv_pv_data.pv.voltage3_3 = battery_mv;
+        if (pva_changed) {
+            pva_changed = false;
+            adv_pva_data.pva.pid++;
+            from32to24(adv_pva_data.pva.power, meter.power);
+            adv_pva_data.pva.voltage220 = meter.voltage/10;
+            adv_pva_data.pva.battery_level = meter.battery_level;
+            adv_pva_data.pva.amps = meter.amps & 0xffff;
+//            adv_pva_data.pva.voltage3_3 = battery_mv;
             if (config.save_data.encrypted) {
-                bthome_encrypt_pv_data_beacon();
+                bthome_encrypt_pva_data_beacon();
             }
         }
         if (config.save_data.encrypted) {
-            bls_ll_setAdvData((uint8_t*)&adv_crypt_pv_data, sizeof(adv_crypt_power_voltage_t));
+            bls_ll_setAdvData((uint8_t*)&adv_crypt_pva_data, sizeof(adv_crypt_power_voltage_amps_t));
         } else {
-            bls_ll_setAdvData((uint8_t*)&adv_pv_data, sizeof(adv_power_voltage_t));
+            bls_ll_setAdvData((uint8_t*)&adv_pva_data, sizeof(adv_power_voltage_amps_t));
         }
     } else {
         if (tariff_changed) {
@@ -378,30 +377,32 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
     adv_tariff_data.tariff.tariff3_id = BTHomeID_energy;
     from32to24(adv_tariff_data.tariff.tariff_3, meter.tariff_3*10);
 
-    adv_pv_data.flg_size  = 0x02;              /* size  */
-    adv_pv_data.flg_type  = GAP_ADTYPE_FLAGS;  /* 0x01  */
-    adv_pv_data.flg       = 0x06;              /* flags */
+    adv_pva_data.flg_size  = 0x02;              /* size  */
+    adv_pva_data.flg_type  = GAP_ADTYPE_FLAGS;  /* 0x01  */
+    adv_pva_data.flg       = 0x06;              /* flags */
 
-    adv_pv_data.head.size = (sizeof(adv_head_uuid16_t)-1 + sizeof(power_voltage_t)) & 0xFF;
-    adv_pv_data.head.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT;
-    adv_pv_data.head.UUID = ADV_BTHOME_UUID16;
-    adv_pv_data.head.device_info = device_info_encrypt_none | device_info_version;
+    adv_pva_data.head.size = (sizeof(adv_head_uuid16_t)-1 + sizeof(power_voltage_amps_t)) & 0xFF;
+    adv_pva_data.head.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT;
+    adv_pva_data.head.UUID = ADV_BTHOME_UUID16;
+    adv_pva_data.head.device_info = device_info_encrypt_none | device_info_version;
 
-    adv_pv_data.pv.pkt_id = BTHomeID_packet_id;
-    adv_pv_data.pv.pid = 0;
+    adv_pva_data.pva.pkt_id = BTHomeID_packet_id;
+    adv_pva_data.pva.pid = 0;
 
-    adv_pv_data.pv.power_id = BTHomeID_power;
-    from32to24(adv_pv_data.pv.power, meter.power);
+    adv_pva_data.pva.power_id = BTHomeID_power;
+    from32to24(adv_pva_data.pva.power, meter.power);
 
-    adv_pv_data.pv.voltage220_id = BTHomeID_voltage;
-    adv_pv_data.pv.voltage220 = meter.voltage;
-#if (ELECTRICITY_TYPE == KASKAD_1_MT)
-    adv_pv_data.pv.battery_id = BTHomeID_battery;
-    adv_pv_data.pv.battery_level = meter.battery_level;
-#endif
+    adv_pva_data.pva.voltage220_id = BTHomeID_voltage;
+    adv_pva_data.pva.voltage220 = meter.voltage;
 
-//    adv_pv_data.pv.voltage3_3_id = BTHomeID_voltage_001;
-//    adv_pv_data.pv.voltage3_3 = battery_mv;
+    adv_pva_data.pva.amps_id = BTHomeID_current;
+    adv_pva_data.pva.amps = meter.amps & 0xffff;
+
+    adv_pva_data.pva.battery_id = BTHomeID_battery;
+    adv_pva_data.pva.battery_level = meter.battery_level;
+
+//    adv_pva_data.pva.voltage3_3_id = BTHomeID_voltage_001;
+//    adv_pva_data.pva.voltage3_3 = battery_mv;
 
     ///////////////////// Controller Initialization /////////////////////
     blc_ll_initBasicMCU();                      //mandatory
@@ -453,7 +454,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
         bthome_beacon_init();
     }
 
-    pv_changed = tariff_changed = true;
+    pva_changed = tariff_changed = true;
 
     ev_adv_timeout(0,0,0);
 }

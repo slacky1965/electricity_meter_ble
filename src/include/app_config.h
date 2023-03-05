@@ -20,14 +20,6 @@ extern "C" {
 
 #define UART_PRINT_DEBUG_ENABLE ON     /* if 1 use printf() over uart  */
 
-#define KASKAD_1_MT             1
-#define KASKAD_11               2
-#define MERCURY_206             3
-
-/* Set type in makefile! */
-//#define ELECTRICITY_TYPE        KASKAD_1_MT
-//#define ELECTRICITY_TYPE        KASKAD_11
-
 /************************ Advertising_Interval *************************************/
 
 //#define ADV_INTERVAL_MIN        4000        /* 4000 * 0.625 = 2500 ms or 2.5 sec */

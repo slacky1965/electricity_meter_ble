@@ -395,12 +395,14 @@ _attribute_ram_code_ static void get_amps_data() {
 
     if (pkt) {
         amps_response = (pkt_amps_t*)pkt->data;
-        amps = from24to32(amps_response->amps);
-        /* pkt->header.params_len & 0x1f == 3 -> amps 2 bytes
-         * pkt->header.params_len & 0x1f == 4 -> amps 3 bytes
+        /* pkt->header.data_len == 3 -> amps 2 bytes
+         * pkt->header.data_len == 4 -> amps 3 bytes
          */
         if (pkt->header.data_len == 3) {
-            amps &= 0xffff;
+            amps = amps_response->amps[0];
+            amps |= (amps_response->amps[1] << 8) & 0xff00;
+        } else {
+            amps = from24to32(amps_response->amps);
         }
 
         if (meter.amps != amps) {
@@ -426,7 +428,7 @@ _attribute_ram_code_ static void get_voltage_data() {
         volts_response = (pkt_volts_t*)pkt->data;
         if (meter.voltage != volts_response->volts) {
             meter.voltage = volts_response->volts;
-            pv_changed = true;
+            pva_changed = true;
             voltage_notify = NOTIFY_MAX;
         }
 
@@ -452,7 +454,7 @@ _attribute_ram_code_ static void get_power_data() {
         power = from24to32(power_response->power);
         if (meter.power != power) {
             meter.power = power;
-            pv_changed = true;
+            pva_changed = true;
             power_notify = NOTIFY_MAX;
         }
 
@@ -549,7 +551,7 @@ _attribute_ram_code_ static void get_resbat_data() {
 
         if (meter.battery_level != battery_level) {
             meter.battery_level = battery_level;
-            pv_changed = true;
+            pva_changed = true;
         }
 
     }

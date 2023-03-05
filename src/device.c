@@ -6,7 +6,7 @@
 #include "cfg.h"
 
 _attribute_data_retention_ uint8_t  tariff_changed = true;
-_attribute_data_retention_ uint8_t  pv_changed = true;
+_attribute_data_retention_ uint8_t  pva_changed = true;
 _attribute_data_retention_ meter_t  meter;
 _attribute_data_retention_ uint8_t  release_month;
 _attribute_data_retention_ uint8_t  release_year;

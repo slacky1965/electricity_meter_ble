@@ -37,23 +37,23 @@ typedef struct __attribute__((packed)) _adv_crypt_tariff_t {
     uint8_t             mic[4];
 } adv_crypt_tariff_t;
 
-typedef struct __attribute__((packed)) _adv_power_voltage_t {
+typedef struct __attribute__((packed)) _adv_power_voltage_amps_t {
     uint8_t             flg_size;   /* 0x02                   */
     uint8_t             flg_type;   /* 0x01                   */
     uint8_t             flg;        /* 0x06                   */
     adv_head_uuid16_t   head;
-    power_voltage_t     pv;
-} adv_power_voltage_t;
+    power_voltage_amps_t pva;
+} adv_power_voltage_amps_t;
 
-typedef struct __attribute__((packed)) _adv_crypt_power_voltage_t {
+typedef struct __attribute__((packed)) _adv_crypt_power_voltage_amps_t {
     uint8_t             flg_size;   /* 0x02                   */
     uint8_t             flg_type;   /* 0x01                   */
     uint8_t             flg;        /* 0x06                   */
     adv_head_uuid16_t   head;
-    uint8_t             ciphertext[sizeof(power_voltage_t)];
+    uint8_t             ciphertext[sizeof(power_voltage_amps_t)];
     uint32_t            counter;
     uint8_t             mic[4];
-} adv_crypt_power_voltage_t;
+} adv_crypt_power_voltage_amps_t;
 
 typedef struct __attribute__((packed)) _main_notify_t {
     uint16_t id;
@@ -85,15 +85,15 @@ extern uint8_t ota_is_working;
 extern uint8_t mac_public[6], mac_random_static[6];
 extern uint8_t ble_name[BLE_NAME_SIZE];
 extern adv_tariff_t adv_tariff_data;
-extern adv_power_voltage_t adv_pv_data;
+extern adv_power_voltage_amps_t adv_pva_data;
 extern adv_crypt_tariff_t adv_crypt_tariff_data;
-extern adv_crypt_power_voltage_t adv_crypt_pv_data;
+extern adv_crypt_power_voltage_amps_t adv_crypt_pva_data;
 extern main_notify_t main_notify;
 extern bindkey_notify_t bindkey_notify;
 extern serial_number_notify_t serial_number_notify;
 extern date_release_notify_t date_release_notify;
 extern uint8_t tariff_changed;
-extern uint8_t pv_changed;
+extern uint8_t pva_changed;
 extern uint8_t adv_counter;
 
 

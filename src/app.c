@@ -139,13 +139,13 @@ void main_loop (void) {
 
 //        if ((time_sec - battery_interval) > CONN_TIMEOUT) {
 //            battery_mv = get_battery_mv();
-//            if (battery_mv != adv_pv_data.pv.voltage3_3) {
-//                if ((battery_mv > adv_pv_data.pv.voltage3_3 && (battery_mv - adv_pv_data.pv.voltage3_3) > 50) ||
-//                    (battery_mv < adv_pv_data.pv.voltage3_3 && (adv_pv_data.pv.voltage3_3 - battery_mv) > 50)) {
+//            if (battery_mv != adv_pva_data.pv.voltage3_3) {
+//                if ((battery_mv > adv_pva_data.pv.voltage3_3 && (battery_mv - adv_pva_data.pv.voltage3_3) > 50) ||
+//                    (battery_mv < adv_pva_data.pv.voltage3_3 && (adv_pva_data.pv.voltage3_3 - battery_mv) > 50)) {
 //#if UART_PRINT_DEBUG_ENABLE
-//                    printf("New battery mv - %u, last battery mv - %u\r\n", battery_mv, adv_pv_data.pv.voltage3_3);
+//                    printf("New battery mv - %u, last battery mv - %u\r\n", battery_mv, adv_pva_data.pv.voltage3_3);
 //#endif /* UART_PRINT_DEBUG_ENABLE */
-//                   pv_changed = true;
+//                   pva_changed = true;
 //                }
 //            }
 //            battery_interval = time_sec;

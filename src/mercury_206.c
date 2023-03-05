@@ -256,7 +256,7 @@ _attribute_ram_code_ static void get_net_params_data() {
             power += from_bcd_to_dec(pkt_net_params->power[2]);
             if (meter.power != power) {
                 meter.power = power;
-                pv_changed = true;
+                pva_changed = true;
                 power_notify = NOTIFY_MAX;
             }
             uint16_t volts = 0;
@@ -265,7 +265,7 @@ _attribute_ram_code_ static void get_net_params_data() {
             volts += from_bcd_to_dec(volts_bcd[1]);
             if (meter.voltage != volts) {
                 meter.voltage = volts;
-                pv_changed = true;
+                pva_changed = true;
                 power_notify = NOTIFY_MAX;
             }
             uint16_t amps = 0;

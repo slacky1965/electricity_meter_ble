@@ -90,7 +90,7 @@ void cmd_parser(void * p) {
             bthome_beacon_init();
         }
         write_config();
-        tariff_changed = pv_changed = true;
+        tariff_changed = pva_changed = true;
 #if UART_PRINT_DEBUG_ENABLE
         printf("Set new bindkey - \"");
         for(int i = 0; i < sizeof(config.save_data.bindkey); i++) {
@@ -103,7 +103,7 @@ void cmd_parser(void * p) {
         memset(config.save_data.bindkey, 0, sizeof(config.save_data.bindkey));
         memset(bindkey_notify.bindkey, 0, sizeof(bindkey_notify.bindkey));
         write_config();
-        tariff_changed = pv_changed = true;
+        tariff_changed = pva_changed = true;
 #if UART_PRINT_DEBUG_ENABLE
         printf("Reset BindKey\r\n");
 #endif /* UART_PRINT_DEBUG_ENABLE */
@@ -170,7 +170,7 @@ void cmd_parser(void * p) {
         memset(config.save_data.bindkey, 0, sizeof(config.save_data.bindkey));
         memset(bindkey_notify.bindkey, 0, sizeof(bindkey_notify.bindkey));
         write_config();
-        tariff_changed = pv_changed = true;
+        tariff_changed = pva_changed = true;
 #if UART_PRINT_DEBUG_ENABLE
         printf("Clear config (measurement data)\r\n");
 #endif /* UART_PRINT_DEBUG_ENABLE */

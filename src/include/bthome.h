@@ -104,20 +104,18 @@ typedef struct __attribute__((packed)) _tariff_t {
     uint8_t  tariff_3[3];   /* Tariff 3             */
 } tariff_t;
 
-typedef struct __attribute__((packed)) _power_voltage_t {
+typedef struct __attribute__((packed)) _power_voltage_amps_t {
     uint8_t  pkt_id;        /* BTHomeID_packet_id   */
     uint8_t  pid;           /* 0..255               */
     uint8_t  power_id;      /* BTHomeID_power       */
     uint8_t  power[3];      /* Power                */
     uint8_t  voltage220_id; /* BTHomeID_voltage     */
     uint16_t voltage220;    /* Voltage 220V         */
-//    uint8_t  voltage3_3_id; /* BTHomeID_voltage_001 */
-//    uint16_t voltage3_3;    /* Voltage 3.3V TB-04   */
-#if (ELECTRICITY_TYPE == KASKAD_1_MT)
+    uint8_t  amps_id;       /* BTHomeID_current     */
+    uint16_t amps;          /* Current ampere       */
     uint8_t  battery_id;    /* BTHomeID_battery     */
     uint8_t  battery_level; /* 0-100%               */
-#endif
-} power_voltage_t;
+} power_voltage_amps_t;
 
 typedef struct __attribute__((packed)) _bthome_nonce_t {
     uint8_t  mac[6];
@@ -128,11 +126,11 @@ typedef struct __attribute__((packed)) _bthome_nonce_t {
 
 extern bthome_nonce_t bthome_nonce;
 extern tariff_t tariff_data;
-extern power_voltage_t pv_data;
+extern power_voltage_amps_t pva_data;
 
 
 void bthome_beacon_init();
 void bthome_encrypt_tariff_data_beacon();
-void bthome_encrypt_pv_data_beacon();
+void bthome_encrypt_pva_data_beacon();
 
 #endif /* SRC_INCLUDE_BTHOME_H_ */

@@ -28,14 +28,14 @@ void bthome_beacon_init() {
     adv_crypt_tariff_data.head.UUID = ADV_BTHOME_UUID16;
     adv_crypt_tariff_data.head.device_info = device_info_encrypt | device_info_version;
 
-    adv_crypt_pv_data.flg_size  = 0x02;              /* size  */
-    adv_crypt_pv_data.flg_type  = GAP_ADTYPE_FLAGS;  /* 0x01  */
-    adv_crypt_pv_data.flg       = 0x06;              /* flags */
+    adv_crypt_pva_data.flg_size  = 0x02;              /* size  */
+    adv_crypt_pva_data.flg_type  = GAP_ADTYPE_FLAGS;  /* 0x01  */
+    adv_crypt_pva_data.flg       = 0x06;              /* flags */
 
-    adv_crypt_pv_data.head.size = (sizeof(adv_head_uuid16_t)-1 + sizeof(power_voltage_t) + 8) & 0xFF;
-    adv_crypt_pv_data.head.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT;
-    adv_crypt_pv_data.head.UUID = ADV_BTHOME_UUID16;
-    adv_crypt_pv_data.head.device_info = device_info_encrypt | device_info_version;
+    adv_crypt_pva_data.head.size = (sizeof(adv_head_uuid16_t)-1 + sizeof(power_voltage_amps_t) + 8) & 0xFF;
+    adv_crypt_pva_data.head.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT;
+    adv_crypt_pva_data.head.UUID = ADV_BTHOME_UUID16;
+    adv_crypt_pva_data.head.device_info = device_info_encrypt | device_info_version;
 }
 
 
@@ -54,15 +54,15 @@ void bthome_encrypt_tariff_data_beacon() {
 }
 
 _attribute_ram_code_ __attribute__((optimize("-Os")))
-void bthome_encrypt_pv_data_beacon() {
+void bthome_encrypt_pva_data_beacon() {
 
     bthome_nonce.counter++;
-    adv_crypt_pv_data.counter = bthome_nonce.counter;
+    adv_crypt_pva_data.counter = bthome_nonce.counter;
 
     aes_ccm_encrypt_and_tag((const unsigned char *)&config.save_data.bindkey,
                        (uint8_t*)&bthome_nonce, sizeof(bthome_nonce_t),
                        0, 0,
-                       (uint8_t*)&adv_pv_data.pv, sizeof(power_voltage_t),
-                       adv_crypt_pv_data.ciphertext,
-                       adv_crypt_pv_data.mic, 4);
+                       (uint8_t*)&adv_pva_data.pva, sizeof(power_voltage_amps_t),
+                       adv_crypt_pva_data.ciphertext,
+                       adv_crypt_pva_data.mic, 4);
 }
