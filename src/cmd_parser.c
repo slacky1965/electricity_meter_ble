@@ -146,6 +146,10 @@ void cmd_parser(void * p) {
 #if UART_PRINT_DEBUG_ENABLE
         printf("New device address: %u\r\n", config.save_data.address_device);
 #endif /* UART_PRINT_DEBUG_ENABLE */
+    } else if (*in_data == CMD_SET_DEVICE_TYPE && len == 2) {
+        len--;
+        set_device_type(in_data[len]);
+        meter.measure_meter();
     } else if (*in_data == CMD_CLEAR_CFG) {
         clear_config();
         main_notify.id = ELECTRICITYMETER_ID;
