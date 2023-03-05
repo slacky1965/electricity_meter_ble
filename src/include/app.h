@@ -10,6 +10,7 @@ extern uint8_t tariff2_notify;
 extern uint8_t tariff3_notify;
 extern uint8_t power_notify;
 extern uint8_t voltage_notify;
+extern uint8_t ampere_notify;
 extern uint8_t mn_notify;
 extern uint8_t lg_notify;
 extern uint8_t bndk_notify;

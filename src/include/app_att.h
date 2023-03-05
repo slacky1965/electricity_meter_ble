@@ -66,6 +66,10 @@ typedef enum
     VOLTAGE_LEVEL_INPUT_DP_H,                //UUID: 2B18,    VALUE: Voltage
     VOLTAGE_LEVEL_INPUT_CCB_H,               //UUID: 2902,    VALUE: voltageValCCC
 
+    AMPERE_LEVEL_INPUT_CD_H,                //UUID: 2803,    VALUE:              Prop: Read | Notify
+    AMPERE_LEVEL_INPUT_DP_H,                //UUID: 2AEE,    VALUE: Ampere
+    AMPERE_LEVEL_INPUT_CCB_H,               //UUID: 2902,    VALUE: ampereValCCC
+
     //// Ota ////
     /**********************************************************************************************/
     OTA_PS_H,                               //UUID: 2800,   VALUE: telink ota service uuid
@@ -91,6 +95,7 @@ extern uint16_t tariff2ValueInCCC;
 extern uint16_t tariff3ValueInCCC;
 extern uint16_t powerValueInCCC;
 extern uint16_t voltageValueInCCC;
+extern uint16_t ampereValueInCCC;
 extern uint16_t RxTxValueInCCC;
 void my_att_init(void);
 uint32_t size_my_devName();

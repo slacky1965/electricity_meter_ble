@@ -35,6 +35,7 @@ _attribute_data_retention_ uint8_t tariff2_notify = NOTIFY_MAX;
 _attribute_data_retention_ uint8_t tariff3_notify = NOTIFY_MAX;
 _attribute_data_retention_ uint8_t power_notify   = NOTIFY_MAX;
 _attribute_data_retention_ uint8_t voltage_notify = NOTIFY_MAX;
+_attribute_data_retention_ uint8_t ampere_notify  = NOTIFY_MAX;
 _attribute_data_retention_ uint8_t sn_notify      = NOTIFY_MAX;
 _attribute_data_retention_ uint8_t dr_notify      = NOTIFY_MAX;
 _attribute_data_retention_ uint8_t mn_notify      = 0;
@@ -210,6 +211,12 @@ void main_loop (void) {
                     if (voltage_notify) {
                         ble_send_voltage();
                         voltage_notify--;
+                    }
+                }
+                if (ampereValueInCCC) {
+                    if (ampere_notify) {
+                        ble_send_ampere();
+                        ampere_notify--;
                     }
                 }
             }

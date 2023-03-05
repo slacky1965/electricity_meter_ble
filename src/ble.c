@@ -482,6 +482,10 @@ void ble_send_voltage() {
     bls_att_pushNotifyData(VOLTAGE_LEVEL_INPUT_DP_H, (uint8_t *)&meter.voltage, sizeof(meter.voltage));
 }
 
+void ble_send_ampere() {
+    bls_att_pushNotifyData(AMPERE_LEVEL_INPUT_DP_H, (uint8_t *)&meter.amps, sizeof(meter.amps));
+}
+
 void ble_send_main() {
     bls_att_pushNotifyData(RxTx_CMD_OUT_DP_H, (uint8_t *)&main_notify, sizeof(main_notify_t));
 }

@@ -68,6 +68,7 @@ static const u8 my_devName[] = WRAPPING_BRACES(DEV_NAME_CHR);
 #define CHARACTERISTIC_UUID_TARIFF4     0x2ba8
 #define CHARACTERISTIC_UUID_POWER       0x2b05
 #define CHARACTERISTIC_UUID_VOLTAGE     0x2b18
+#define CHARACTERISTIC_UUID_AMPERE      0x2aee
 
 //////////////////////// Electricity meter /////////////////////////////////////////////////
 static const u16 my_emeterServiceUUID   = SERVICE_UUID_EMETER; // User data
@@ -76,12 +77,14 @@ static const u16 my_tariff2CharUUID     = CHARACTERISTIC_UUID_TARIFF2;
 static const u16 my_tariff3CharUUID     = CHARACTERISTIC_UUID_TARIFF3;
 static const u16 my_powerCharUUID       = CHARACTERISTIC_UUID_POWER;
 static const u16 my_voltageCharUUID     = CHARACTERISTIC_UUID_VOLTAGE;
+static const u16 my_ampereCharUUID      = CHARACTERISTIC_UUID_AMPERE;
 
 _attribute_data_retention_ uint16_t tariff1ValueInCCC;
 _attribute_data_retention_ uint16_t tariff2ValueInCCC;
 _attribute_data_retention_ uint16_t tariff3ValueInCCC;
 _attribute_data_retention_ uint16_t powerValueInCCC;
 _attribute_data_retention_ uint16_t voltageValueInCCC;
+_attribute_data_retention_ uint16_t ampereValueInCCC;
 
 
 // RxTx Char
@@ -209,6 +212,12 @@ static const u8 my_voltageCharVal[5] = {
     U16_LO(CHARACTERISTIC_UUID_VOLTAGE), U16_HI(CHARACTERISTIC_UUID_VOLTAGE)
 };
 
+static const u8 my_ampereCharVal[5] = {
+    CHAR_PROP_READ | CHAR_PROP_NOTIFY,
+    U16_LO(AMPERE_LEVEL_INPUT_DP_H), U16_HI(AMPERE_LEVEL_INPUT_DP_H),
+    U16_LO(CHARACTERISTIC_UUID_VOLTAGE), U16_HI(CHARACTERISTIC_UUID_VOLTAGE)
+};
+
 
 //// OTA attribute values
 static const u8 my_OtaCharVal[19] = {
@@ -271,8 +280,8 @@ _attribute_data_retention_ attribute_t my_Attributes[] = {
     {0,ATT_PERMISSIONS_READ,2,sizeof(my_ManStr),(u8*)(&my_UUID_MANUFACTURER_NAME),(u8*)(my_ManStr), 0},
 
     ////////////////////////////////////// Electricity Meter Service /////////////////////////////////////////////////////
-    // 0019 - 0028
-    {16,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_emeterServiceUUID), 0},
+    // 0019 - 002b
+    {19,ATT_PERMISSIONS_READ,2,2,(u8*)(&my_primaryServiceUUID),(u8*)(&my_emeterServiceUUID), 0},
     {0,ATT_PERMISSIONS_READ,2,sizeof(my_tariff1CharVal),(u8*)(&my_characterUUID),(u8*)(my_tariff1CharVal), 0},            //prop
     {0,ATT_PERMISSIONS_READ,2,sizeof(meter.tariff_1),(u8*)(&my_tariff1CharUUID),(u8*)(&meter.tariff_1), 0}, //value
     {0,ATT_PERMISSIONS_RDWR,2,sizeof(tariff1ValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&tariff1ValueInCCC), 0},     //value
@@ -293,15 +302,19 @@ _attribute_data_retention_ attribute_t my_Attributes[] = {
     {0,ATT_PERMISSIONS_READ,2,sizeof(meter.voltage),(u8*)(&my_voltageCharUUID),(u8*)(&meter.voltage), 0},   //value
     {0,ATT_PERMISSIONS_RDWR,2,sizeof(voltageValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&voltageValueInCCC), 0},     //value
 
+    {0,ATT_PERMISSIONS_READ,2,sizeof(my_ampereCharVal),(u8*)(&my_characterUUID),(u8*)(my_ampereCharVal), 0},            //prop
+    {0,ATT_PERMISSIONS_READ,2,sizeof(meter.amps),(u8*)(&my_ampereCharUUID),(u8*)(&meter.amps), 0},   //value
+    {0,ATT_PERMISSIONS_RDWR,2,sizeof(ampereValueInCCC),(u8*)(&clientCharacterCfgUUID),(u8*)(&ampereValueInCCC), 0},     //value
+
     ////////////////////////////////////// OTA /////////////////////////////////////////////////////
-	// 0029 - 002c
+	// 002c - 002f
 	{4,ATT_PERMISSIONS_READ, 2,16,(u8*)(&my_primaryServiceUUID), 	(u8*)(&my_OtaServiceUUID), 0},
 	{0,ATT_PERMISSIONS_READ, 2, sizeof(my_OtaCharVal),(u8*)(&my_characterUUID), (u8*)(my_OtaCharVal), 0},	 //prop
 	{0,ATT_PERMISSIONS_RDWR,16,sizeof(my_OtaData),(u8*)(&my_OtaUUID),	(&my_OtaData), &otaWrite, NULL}, //value
 	{0,ATT_PERMISSIONS_READ, 2,sizeof (my_OtaName),(u8*)(&userdesc_UUID), (u8*)(my_OtaName), 0},
 
     ////////////////////////////////////// RxTx Communication /////////////////////////////////////////
-    // 002d - 0030
+    // 0030 - 0033
     {4,ATT_PERMISSIONS_RDWR, 2,2,(u8*)(&my_primaryServiceUUID),     (u8*)(&my_RxTx_ServiceUUID), 0},
     {0,ATT_PERMISSIONS_READ, 2, sizeof(my_RxTxCharVal), (u8*)(&my_characterUUID), (u8*)(my_RxTxCharVal), 0},             //prop
     {0,ATT_PERMISSIONS_RDWR, 2,sizeof(my_RxTx_Data),(u8*)(&my_RxTxUUID), (u8*)&my_RxTx_Data, &RxTxWrite, 0},

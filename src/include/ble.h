@@ -107,6 +107,7 @@ void ble_send_tariff3();
 void ble_send_tariff4();
 void ble_send_power();
 void ble_send_voltage();
+void ble_send_ampere();
 void ble_send_main();
 void ble_send_log();
 void ble_send_bindkey();

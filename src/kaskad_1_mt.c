@@ -402,9 +402,16 @@ _attribute_ram_code_ static void get_amps_data() {
         if (pkt->header.data_len == 3) {
             amps &= 0xffff;
         }
+
+        if (meter.amps != amps) {
+            meter.amps = amps;
+            ampere_notify = NOTIFY_MAX;
+        }
+
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("phase: %u, amps: %u,%02u\r\n", amps_response->phase_num, amps/1000, amps%1000);
 #endif
+
     }
 }
 
