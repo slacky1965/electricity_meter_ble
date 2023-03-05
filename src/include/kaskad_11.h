@@ -2,13 +2,13 @@
 #define SRC_INCLUDE_KASKAD_11_H_
 
 typedef enum _command_t {
-    cmd_open_channel         = 0x02,
-    cmd_close_channel        = 0x03,
-    cmd_net_parameters       = 0x20,
-    cmd_serial_number        = 0x25,
-    cmd_tariffs_data         = 0x26,
-    cmd_date_release         = 0x53,
-    cmd_test_error           = 0xf0
+    cmd_open_channel    = 0x02,
+    cmd_close_channel   = 0x03,
+    cmd_net_parameters  = 0x20,
+    cmd_serial_number   = 0x25,
+    cmd_tariffs_data    = 0x26,
+    cmd_date_release    = 0x53,
+    cmd_test_error      = 0xf0
 } command_t;
 
 typedef enum _net_parameters_t {
@@ -111,7 +111,5 @@ typedef struct __attribute__((packed)) _pkt_power3_t {
     uint8_t  crc;
 } pkt_power3_t;
 
-void get_serial_number_data();
-void get_date_release_data();
 
 #endif /* SRC_INCLUDE_KASKAD_11_H_ */

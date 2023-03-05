@@ -46,7 +46,7 @@ typedef struct __attribute__((packed)) _package_t {
     uint8_t          load_len;
 } package_t;
 
-typedef struct __attribute__((packed)) _tariffs_meter_data_t {
+typedef struct __attribute__((packed)) _pkt_tariffs_t {
     uint32_t         sum_tariffs;
     uint8_t          byte_cfg;
     uint8_t          division_factor;
@@ -56,25 +56,25 @@ typedef struct __attribute__((packed)) _tariffs_meter_data_t {
     uint32_t         tariff_2;
     uint32_t         tariff_3;
     uint32_t         tariff_4;
-} tariffs_meter_data_t;
+} pkt_tariffs_t;
 
-typedef struct __attribute__((packed)) _amps_meter_data_t {
+typedef struct __attribute__((packed)) _pkt_amps_t {
     uint8_t          phase_num; /* number of phase    */
     uint8_t          amps[3];   /* maybe 2 or 3 bytes */
-} amps_meter_data_t;
+} pkt_amps_t;
 
-typedef struct __attribute__((packed)) _volts_meter_data_t {
+typedef struct __attribute__((packed)) _pkt_volts_t {
     uint8_t          phase_num;
     uint16_t         volts;
-} volts_meter_data_t;
+} pkt_volts_t;
 
-typedef struct __attribute__((packed)) _power_meter_data_t {
+typedef struct __attribute__((packed)) _pkt_power_t {
     uint8_t          power[3];
     uint8_t          byte_cfg;
     uint8_t          division_factor;
-} power_meter_data_t;
+} pkt_power_t;
 
-typedef struct __attribute__((packed)) _read_cfg_meter_data_t {
+typedef struct __attribute__((packed)) _pkt_read_cfg_t {
     uint8_t          divisor            :2; /* 0 - "00000000", 1 - "0000000.0", 2 - "000000.00", 3 - "00000.000"    */
     uint8_t          current_tariff     :2; /* 0 - first, 1 - second, 2 - third, 3 - fourth                         */
     uint8_t          char_num           :2; /* 0 - 6, 1 - 7, 2 - 8, 3 - 8                                           */
@@ -91,14 +91,14 @@ typedef struct __attribute__((packed)) _read_cfg_meter_data_t {
     uint8_t          months_worked;         /* battery */
     uint8_t          remaining_months_work; /* battery */
     uint8_t          role;
-} read_cfg_meter_data_t;
+} pkt_read_cfg_t;
 
-typedef struct __attribute__((packed)) _resbat_meter_data_t {
+typedef struct __attribute__((packed)) _pkt_resbat_t {
     uint8_t          lifetime;
     uint8_t          worktime;
-} resbat_meter_data_t;
+} pkt_resbat_t;
 
-typedef struct __attribute__((packed)) _info_meter_data_t {
+typedef struct __attribute__((packed)) _pkt_info_t {
     uint8_t          id;
     uint8_t          data[24];
     uint8_t          interface1;
@@ -106,9 +106,9 @@ typedef struct __attribute__((packed)) _info_meter_data_t {
     uint8_t          interface3;
     uint8_t          interface4;
     uint16_t         battery_mv;
-} info_meter_data_t;
+} pkt_info_t;
 
-typedef struct __attribute__((packed)) _data31_meter_data_t {
+typedef struct __attribute__((packed)) _pkt_data31_t {
     uint8_t          start;
     uint8_t          boundary;
     package_header_t header;
@@ -116,9 +116,7 @@ typedef struct __attribute__((packed)) _data31_meter_data_t {
     uint8_t          data[DATA_MAX_LEN];    /* data31 -> data[30] + sub_command = 31 */
     uint8_t          crc;
     uint8_t          stop;
-} data31_meter_data_t;
+} pkt_data31_t;
 
-void get_serial_number_data();
-void get_date_release_data();
 
 #endif /* SRC_INCLUDE_KASKAD_1_MT_H_ */

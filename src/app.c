@@ -88,7 +88,8 @@ void user_init_normal(void) {
     reset_wl_begin = false;
     flush_buff_uart();
     app_uart_init();
-    measure_meter();
+    set_device_type(config.save_data.device_type);
+    meter.measure_meter();
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void) {
@@ -130,7 +131,7 @@ void main_loop (void) {
 
         if ((time_sec - measure_interval) > (config.measurement_period*60)) {
 
-            measure_meter();
+            meter.measure_meter();
 
             measure_interval = time_sec;
         }

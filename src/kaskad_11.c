@@ -3,15 +3,10 @@
 #include "stack/ble/ble.h"
 
 #include "device.h"
+#include "kaskad_11.h"
 #include "cfg.h"
 #include "app_uart.h"
 #include "app.h"
-
-#if (!ELECTRICITY_TYPE)
-#define ELECTRICITY_TYPE  KASKAD_11
-#endif
-
-#if (ELECTRICITY_TYPE == KASKAD_11)
 
 #define LEVEL_READ 0x02
 #define MIN_PKT_SIZE 0x06
@@ -19,9 +14,7 @@
 _attribute_data_retention_ static package_t request_pkt;
 _attribute_data_retention_ static package_t response_pkt;
 _attribute_data_retention_ static uint8_t   def_password[] = {0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30};
-_attribute_data_retention_ static uint8_t   first_start = true;
 _attribute_data_retention_ static uint8_t   phases3;
-_attribute_data_retention_ static pkt_error_t pkt_error_no;
 
 
 _attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer) {
@@ -73,7 +66,7 @@ _attribute_ram_code_ static uint8_t send_command(package_t *pkt) {
     return len;
 }
 
-_attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
+_attribute_ram_code_ static pkt_error_t response_meter(uint8_t command) {
 
     size_t load_size, load_len = 0, len = PKT_BUFF_MAX_LEN;
     uint8_t ch, complete = false;;
@@ -383,7 +376,7 @@ _attribute_ram_code_ static void get_amps_data() {
     }
 }
 
-_attribute_ram_code_ void get_date_release_data() {
+_attribute_ram_code_ void get_date_release_data_kaskad11() {
 
     pkt_release_t *pkt;
 
@@ -404,7 +397,7 @@ _attribute_ram_code_ void get_date_release_data() {
     }
 }
 
-_attribute_ram_code_ void get_serial_number_data() {
+_attribute_ram_code_ void get_serial_number_data_kaskad11() {
 
     set_header(cmd_serial_number);
 
@@ -423,16 +416,17 @@ _attribute_ram_code_ void get_serial_number_data() {
     }
 }
 
-_attribute_ram_code_ void measure_meter() {
+_attribute_ram_code_ void measure_meter_kaskad11() {
 
     if (open_channel()) {
 
-        if (first_start) {
-            get_amps_data();                /* get amps and check phases num */
-            get_serial_number_data();
-            get_date_release_data();
-            first_start = false;
+        if (new_start) {
+            get_serial_number_data_kaskad11();
+            get_date_release_data_kaskad11();
+            new_start = false;
         }
+
+        get_amps_data();                    /* get amps and check phases num */
 
         if (phases3) {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
@@ -446,8 +440,4 @@ _attribute_ram_code_ void measure_meter() {
         close_channel();
     }
 }
-
-
-
-#endif
 

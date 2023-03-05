@@ -3,22 +3,13 @@
 #include "stack/ble/ble.h"
 
 #include "device.h"
+#include "mercury_206.h"
 #include "cfg.h"
 #include "app_uart.h"
 #include "app.h"
 
-#if (!ELECTRICITY_TYPE)
-#define ELECTRICITY_TYPE MERCURY_206
-#endif
-
-#if (ELECTRICITY_TYPE == MERCURY_206)
-
 _attribute_data_retention_ static package_t request_pkt;
 _attribute_data_retention_ static package_t response_pkt;
-_attribute_data_retention_ static uint8_t   first_start = true;
-_attribute_data_retention_ static uint8_t   release_month;
-_attribute_data_retention_ static uint8_t   release_year;
-_attribute_data_retention_ static pkt_error_t pkt_error_no;
 
 _attribute_ram_code_ static uint16_t checksum(const uint8_t *src_buffer, uint8_t len) {
 
@@ -98,7 +89,7 @@ _attribute_ram_code_ static uint8_t send_command(package_t *pkt) {
     return len;
 }
 
-_attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
+_attribute_ram_code_ static pkt_error_t response_meter(uint8_t command) {
 
     uint8_t load_size, load_len = 0;
     pkt_error_no = PKT_ERR_TIMEOUT;
@@ -307,7 +298,7 @@ _attribute_ram_code_ static void get_resbat_data() {
     }
 }
 
-_attribute_ram_code_ void get_date_release_data() {
+_attribute_ram_code_ void get_date_release_data_mercury206() {
 
     set_command(cmd_date_release);
 
@@ -327,7 +318,7 @@ _attribute_ram_code_ void get_date_release_data() {
 }
 
 
-_attribute_ram_code_ uint8_t get_serial_number_data() {
+_attribute_ram_code_ void get_serial_number_data_mercury206() {
 
     set_command(cmd_serial_number);
 
@@ -338,19 +329,29 @@ _attribute_ram_code_ uint8_t get_serial_number_data() {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("serial number: %08x (%u)\r\n", pkt_serial_num->addr, pkt_serial_num->addr);
 #endif
+        }
+    }
+}
+
+_attribute_ram_code_ uint8_t get_timeout_data() {
+
+    set_command(cmd_timeout);
+
+    if (send_command(&request_pkt)) {
+        if (response_meter(cmd_timeout) == PKT_OK) {
             return true;
         }
     }
-
     return false;
 }
 
-_attribute_ram_code_ void measure_meter() {
+_attribute_ram_code_ void measure_meter_mercury206() {
 
-    if (get_serial_number_data()) {
-        if (first_start) {
-            get_date_release_data();
-            first_start = false;
+    if (get_timeout_data()) {
+        if (new_start) {
+            get_serial_number_data_mercury206();
+            get_date_release_data_mercury206();
+            new_start = false;
         }
         get_net_params_data();
         get_tariffs_data();
@@ -358,5 +359,3 @@ _attribute_ram_code_ void measure_meter() {
     }
 }
 
-
-#endif

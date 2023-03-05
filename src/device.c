@@ -3,10 +3,15 @@
 #include "stack/ble/ble.h"
 
 #include "device.h"
+#include "cfg.h"
 
 _attribute_data_retention_ uint8_t  tariff_changed = true;
 _attribute_data_retention_ uint8_t  pv_changed = true;
-_attribute_data_retention_ meter_t meter = {0};
+_attribute_data_retention_ meter_t  meter;
+_attribute_data_retention_ uint8_t  release_month;
+_attribute_data_retention_ uint8_t  release_year;
+_attribute_data_retention_ uint8_t  new_start = true;
+_attribute_data_retention_ pkt_error_t pkt_error_no;
 
 _attribute_ram_code_ uint16_t divisor(const uint8_t division_factor) {
 
@@ -31,4 +36,35 @@ _attribute_ram_code_ uint32_t from24to32(const uint8_t *str) {
     return value;
 }
 
+_attribute_ram_code_ void set_device_type(device_type_t type) {
 
+    memset(&meter, 0, sizeof(meter_t));
+    new_start = true;
+
+    switch (type) {
+        case device_kaskad_1_mt:
+            config.save_data.device_type = device_kaskad_1_mt;
+            meter.measure_meter = measure_meter_kaskad1mt;
+            meter.get_date_release_data = get_date_release_data_kaskad1mt;
+            meter.get_serial_number_data = get_serial_number_data_kaskad1mt;
+            break;
+        case device_kaskad_11:
+            config.save_data.device_type = device_kaskad_11;
+            meter.measure_meter = measure_meter_kaskad11;
+            meter.get_date_release_data = get_date_release_data_kaskad11;
+            meter.get_serial_number_data = get_serial_number_data_kaskad11;
+            break;
+        case device_mercury_206:
+            config.save_data.device_type = device_mercury_206;
+            meter.measure_meter = measure_meter_mercury206;
+            meter.get_date_release_data = get_date_release_data_mercury206;
+            meter.get_serial_number_data = get_serial_number_data_mercury206;
+            break;
+        default:
+            config.save_data.device_type = device_kaskad_1_mt;
+            meter.measure_meter = measure_meter_kaskad1mt;
+            meter.get_date_release_data = get_date_release_data_kaskad1mt;
+            meter.get_serial_number_data = get_serial_number_data_kaskad1mt;
+            break;
+    }
+}

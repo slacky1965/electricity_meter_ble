@@ -20,11 +20,6 @@ SDK_PATH := ./SDK
 # Set Project Name
 PROJECT_NAME := electricity_meter
 
-# Set Electricity Meter Type
-EMETER := KASKAD_1_MT
-#EMETER := KASKAD_11
-ELECTRICITY_TYPE := 'ELECTRICITY_TYPE=$(EMETER)'
-
 # Set the serial port number for downloading the firmware
 DOWNLOAD_PORT := COM4
 
@@ -63,8 +58,7 @@ GCC_FLAGS := \
 -finline-small-functions \
 -std=gnu99 \
 -fshort-wchar \
--fms-extensions \
--D$(ELECTRICITY_TYPE)
+-fms-extensions
 
 #INCLUDE_PATHS := -I$(SDK_PATH) -I$(PROJECT_PATH)/include
 INCLUDE_PATHS := -I$(SDK_PATH) -I$(SDK_PATH)/drivers/8258 -I$(SRC_PATH)/include
@@ -135,7 +129,7 @@ $(BIN_FILE): $(ELF_FILE)
 	@python3 $(TL_Check) $(BIN_FILE)
 	@echo 'Finished building: $@'
 	@echo ' '
-	@cp $(BIN_FILE) $(PROJECT_NAME)_$(EMETER)_$(VERSION).bin
+	@cp $(BIN_FILE) $(PROJECT_NAME)_$(VERSION).bin
 
 sizedummy: $(ELF_FILE)
 	@echo 'Invoking: Print Size'
