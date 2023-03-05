@@ -3,8 +3,6 @@
 #include "stack/ble/ble.h"
 
 #include "device.h"
-//#include "kaskad_1_mt.h"
-#include "kaskad_11.h"
 #include "mercury_206.h"
 #include "cfg.h"
 
@@ -52,9 +50,9 @@ _attribute_ram_code_ void set_device_type(device_type_t type) {
             break;
         case device_kaskad_11:
             config.save_data.device_type = device_kaskad_11;
-            meter.measure_meter = k11_measure_meter;
-            meter.get_date_release_data = k11_get_date_release_data;
-            meter.get_serial_number_data = k11_get_serial_number_data;
+            meter.measure_meter = measure_meter_kaskad11;
+            meter.get_date_release_data = get_date_release_data_kaskad11;
+            meter.get_serial_number_data = get_serial_number_data_kaskad11;
             break;
         case device_mercury_206:
             config.save_data.device_type = device_mercury_206;

@@ -57,6 +57,10 @@ void set_device_type(device_type_t type);
 void measure_meter_kaskad1mt();
 uint8_t get_serial_number_data_kaskad1mt();
 void get_date_release_data_kaskad1mt();
+void measure_meter_kaskad11();
+uint8_t get_serial_number_data_kaskad11();
+void get_date_release_data_kaskad11();
+
 
 
 

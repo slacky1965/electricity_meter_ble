@@ -8,22 +8,16 @@
 #include "app_uart.h"
 #include "app.h"
 
-#if (!ELECTRICITY_TYPE)
-#define ELECTRICITY_TYPE  KASKAD_11
-#endif
-
-#if (ELECTRICITY_TYPE == KASKAD_11)
-
 #define LEVEL_READ 0x02
 #define MIN_PKT_SIZE 0x06
 
-_attribute_data_retention_ static k11_package_t k11_request_pkt;
-_attribute_data_retention_ static k11_package_t k11_response_pkt;
+_attribute_data_retention_ static package_t request_pkt;
+_attribute_data_retention_ static package_t response_pkt;
 _attribute_data_retention_ static uint8_t   def_password[] = {0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30};
 _attribute_data_retention_ static uint8_t   phases3;
 
 
-_attribute_ram_code_ static uint8_t k11_checksum(const uint8_t *src_buffer) {
+_attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer) {
     uint8_t crc = 0;
     uint8_t len = src_buffer[0]-1;
 
@@ -34,7 +28,7 @@ _attribute_ram_code_ static uint8_t k11_checksum(const uint8_t *src_buffer) {
     return crc;
 }
 
-_attribute_ram_code_ static uint8_t k11_send_command(k11_package_t *pkt) {
+_attribute_ram_code_ static uint8_t send_command(package_t *pkt) {
 
     size_t len;
 
@@ -72,14 +66,14 @@ _attribute_ram_code_ static uint8_t k11_send_command(k11_package_t *pkt) {
     return len;
 }
 
-_attribute_ram_code_ static pkt_error_t k11_response_meter(uint8_t command) {
+_attribute_ram_code_ static pkt_error_t response_meter(uint8_t command) {
 
     size_t load_size, load_len = 0, len = PKT_BUFF_MAX_LEN;
     uint8_t ch, complete = false;;
     pkt_error_no = PKT_ERR_TIMEOUT;
-    uint8_t *buff = (uint8_t*)&k11_response_pkt;
+    uint8_t *buff = (uint8_t*)&response_pkt;
 
-    memset(buff, 0, sizeof(k11_package_t));
+    memset(buff, 0, sizeof(package_t));
 
     for (uint8_t attempt = 0; attempt < 3; attempt ++) {
         load_size = 0;
@@ -134,11 +128,11 @@ _attribute_ram_code_ static pkt_error_t k11_response_meter(uint8_t command) {
 #endif
 
         if (complete) {
-            uint8_t crc = k11_checksum(buff);
-            if (crc == buff[k11_response_pkt.len-1]) {
-                if (buff[k11_response_pkt.len-2] == 0x01) {
-                    if (k11_response_pkt.address == config.save_data.address_device) {
-                        if (k11_response_pkt.cmd == command) {
+            uint8_t crc = checksum(buff);
+            if (crc == buff[response_pkt.len-1]) {
+                if (buff[response_pkt.len-2] == 0x01) {
+                    if (response_pkt.address == config.save_data.address_device) {
+                        if (response_pkt.cmd == command) {
                             pkt_error_no = PKT_OK;
                         } else {
                             pkt_error_no = PKT_ERR_DIFFERENT_COMMAND;
@@ -193,39 +187,39 @@ _attribute_ram_code_ static pkt_error_t k11_response_meter(uint8_t command) {
 #endif
 
     if (pkt_error_no != PKT_OK && get_queue_len_buff_uart()) {
-        k11_response_meter(command);
+        response_meter(command);
     }
 
     return pkt_error_no;
 }
 
-_attribute_ram_code_ static void k11_set_header(uint8_t cmd) {
+_attribute_ram_code_ static void set_header(uint8_t cmd) {
 
-    memset(&k11_request_pkt, 0, sizeof(k11_package_t));
+    memset(&request_pkt, 0, sizeof(package_t));
 
-    k11_request_pkt.len = 1;
-    k11_request_pkt.cmd = cmd;
-    k11_request_pkt.len++;
-    k11_request_pkt.address = config.save_data.address_device;
-    k11_request_pkt.len += 2;
+    request_pkt.len = 1;
+    request_pkt.cmd = cmd;
+    request_pkt.len++;
+    request_pkt.address = config.save_data.address_device;
+    request_pkt.len += 2;
 }
 
-_attribute_ram_code_ static uint8_t k11_open_channel() {
+_attribute_ram_code_ static uint8_t open_channel() {
 
     uint8_t pos = 0;
 
-    k11_set_header(cmd_k11_open_channel);
+    set_header(cmd_open_channel);
 
-    k11_request_pkt.data[pos++] = LEVEL_READ;
+    request_pkt.data[pos++] = LEVEL_READ;
 
-    memcpy(k11_request_pkt.data+pos, def_password, sizeof(def_password));
+    memcpy(request_pkt.data+pos, def_password, sizeof(def_password));
     pos += sizeof(def_password);
-    k11_request_pkt.len += pos+1;
-    uint8_t crc = k11_checksum((uint8_t*)&k11_request_pkt);
-    k11_request_pkt.data[pos] = crc;
+    request_pkt.len += pos+1;
+    uint8_t crc = checksum((uint8_t*)&request_pkt);
+    request_pkt.data[pos] = crc;
 
-    if (k11_send_command(&k11_request_pkt)) {
-        if (k11_response_meter(cmd_k11_open_channel) == PKT_OK) {
+    if (send_command(&request_pkt)) {
+        if (response_meter(cmd_open_channel) == PKT_OK) {
             return true;
         }
     }
@@ -233,36 +227,36 @@ _attribute_ram_code_ static uint8_t k11_open_channel() {
     return false;
 }
 
-_attribute_ram_code_ static void k11_close_channel() {
+_attribute_ram_code_ static void close_channel() {
 
-    k11_set_header(cmd_k11_close_channel);
+    set_header(cmd_close_channel);
 
-    k11_request_pkt.len++;
-    uint8_t crc = k11_checksum((uint8_t*)&k11_request_pkt);
-    k11_request_pkt.data[0] = crc;
+    request_pkt.len++;
+    uint8_t crc = checksum((uint8_t*)&request_pkt);
+    request_pkt.data[0] = crc;
 
-    if (k11_send_command(&k11_request_pkt)) {
-        k11_response_meter(cmd_k11_close_channel);
+    if (send_command(&request_pkt)) {
+        response_meter(cmd_close_channel);
     }
 }
 
-_attribute_ram_code_ static void k11_set_tariff_num(uint8_t tariff_num) {
+_attribute_ram_code_ static void set_tariff_num(uint8_t tariff_num) {
 
-    k11_set_header(cmd_k11_tariffs_data);
+    set_header(cmd_tariffs_data);
 
-    k11_request_pkt.data[0] = tariff_num;
-    k11_request_pkt.len += 2;
-    k11_request_pkt.data[1] = k11_checksum((uint8_t*)&k11_request_pkt);
+    request_pkt.data[0] = tariff_num;
+    request_pkt.len += 2;
+    request_pkt.data[1] = checksum((uint8_t*)&request_pkt);
 }
 
-_attribute_ram_code_ static void k11_get_tariffs_data() {
+_attribute_ram_code_ static void get_tariffs_data() {
 
     for (uint8_t tariff_num = 1; tariff_num < 4; tariff_num++) {
-        k11_set_tariff_num(tariff_num);
-        if (k11_send_command(&k11_request_pkt)) {
-            if (k11_response_meter(cmd_k11_tariffs_data) == PKT_OK) {
+        set_tariff_num(tariff_num);
+        if (send_command(&request_pkt)) {
+            if (response_meter(cmd_tariffs_data) == PKT_OK) {
 
-                k11_pkt_tariff_t *pkt_tariff = (k11_pkt_tariff_t*)&k11_response_pkt;
+                pkt_tariff_t *pkt_tariff = (pkt_tariff_t*)&response_pkt;
 
                 switch (tariff_num) {
                     case 1:
@@ -308,23 +302,23 @@ _attribute_ram_code_ static void k11_get_tariffs_data() {
 
 }
 
-_attribute_ram_code_ static void k11_set_net_parameters(uint8_t param) {
+_attribute_ram_code_ static void set_net_parameters(uint8_t param) {
 
-    k11_set_header(cmd_k11_net_parameters);
+    set_header(cmd_net_parameters);
 
-    k11_request_pkt.data[0] = param;
-    k11_request_pkt.len += 2;
-    k11_request_pkt.data[1] = k11_checksum((uint8_t*)&k11_request_pkt);
+    request_pkt.data[0] = param;
+    request_pkt.len += 2;
+    request_pkt.data[1] = checksum((uint8_t*)&request_pkt);
 
 }
 
-_attribute_ram_code_ static void k11_get_voltage_data() {
+_attribute_ram_code_ static void get_voltage_data() {
 
-    k11_set_net_parameters(net_voltage);
+    set_net_parameters(net_voltage);
 
-    if (k11_send_command(&k11_request_pkt)) {
-        if (k11_response_meter(cmd_k11_net_parameters) == PKT_OK) {
-            k11_pkt_voltage_t *pkt_voltage = (k11_pkt_voltage_t*)&k11_response_pkt;
+    if (send_command(&request_pkt)) {
+        if (response_meter(cmd_net_parameters) == PKT_OK) {
+            pkt_voltage_t *pkt_voltage = (pkt_voltage_t*)&response_pkt;
             if (meter.voltage != pkt_voltage->voltage) {
                 meter.voltage = pkt_voltage->voltage;
                 pv_changed = true;
@@ -339,13 +333,13 @@ _attribute_ram_code_ static void k11_get_voltage_data() {
     }
 }
 
-_attribute_ram_code_ static void k11_get_power_data() {
+_attribute_ram_code_ static void get_power_data() {
 
-    k11_set_net_parameters(net_power);
+    set_net_parameters(net_power);
 
-    if (k11_send_command(&k11_request_pkt)) {
-        if (k11_response_meter(cmd_k11_net_parameters) == PKT_OK) {
-            k11_pkt_power_t *pkt_power = (k11_pkt_power_t*)&k11_response_pkt;
+    if (send_command(&request_pkt)) {
+        if (response_meter(cmd_net_parameters) == PKT_OK) {
+            pkt_power_t *pkt_power = (pkt_power_t*)&response_pkt;
             uint32_t power = from24to32(pkt_power->power);
             if (meter.power != power) {
                 meter.power = power;
@@ -362,18 +356,18 @@ _attribute_ram_code_ static void k11_get_power_data() {
 }
 
 
-_attribute_ram_code_ static void k11_get_amps_data() {
+_attribute_ram_code_ static void get_amps_data() {
 
-    k11_set_net_parameters(net_amps);
+    set_net_parameters(net_amps);
 
-    if (k11_send_command(&k11_request_pkt)) {
-        if (k11_response_meter(cmd_k11_net_parameters) == PKT_OK) {
+    if (send_command(&request_pkt)) {
+        if (response_meter(cmd_net_parameters) == PKT_OK) {
             /* check 1 phase or 3 phases */
-            if (k11_response_pkt.len > 9) {
+            if (response_pkt.len > 9) {
                 phases3 = true;
             } else {
                 phases3 = false;
-                k11_pkt_amps_t *pkt_amps = (k11_pkt_amps_t*)&k11_response_pkt;
+                pkt_amps_t *pkt_amps = (pkt_amps_t*)&response_pkt;
     #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
                 printf("amps: %u,%02u\r\n", pkt_amps->amps/1000, pkt_amps->amps%1000);
     #endif
@@ -382,19 +376,19 @@ _attribute_ram_code_ static void k11_get_amps_data() {
     }
 }
 
-_attribute_ram_code_ void k11_get_date_release_data() {
+_attribute_ram_code_ void get_date_release_data_kaskad11() {
 
-    k11_pkt_release_t *pkt;
+    pkt_release_t *pkt;
 
-    k11_set_header(cmd_k11_date_release);
+    set_header(cmd_date_release);
 
-    k11_request_pkt.len++;
-    uint8_t crc = k11_checksum((uint8_t*)&k11_request_pkt);
-    k11_request_pkt.data[0] = crc;
+    request_pkt.len++;
+    uint8_t crc = checksum((uint8_t*)&request_pkt);
+    request_pkt.data[0] = crc;
 
-    if (k11_send_command(&k11_request_pkt)) {
-        if (k11_response_meter(cmd_k11_open_channel) == PKT_OK) {
-            pkt = (k11_pkt_release_t*)&k11_response_pkt;
+    if (send_command(&request_pkt)) {
+        if (response_meter(cmd_open_channel) == PKT_OK) {
+            pkt = (pkt_release_t*)&response_pkt;
             meter.date_release_len = sprintf((char*)meter.date_release, "%02u.%02u.%u", pkt->day, pkt->month, pkt->year+2000);
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("Date of release: %s\r\n", meter.date_release_len);
@@ -403,18 +397,18 @@ _attribute_ram_code_ void k11_get_date_release_data() {
     }
 }
 
-_attribute_ram_code_ uint8_t k11_get_serial_number_data() {
+_attribute_ram_code_ uint8_t get_serial_number_data_kaskad11() {
 
-    k11_set_header(cmd_k11_serial_number);
+    set_header(cmd_serial_number);
 
-    k11_request_pkt.len++;
-    uint8_t crc = k11_checksum((uint8_t*)&k11_request_pkt);
-    k11_request_pkt.data[0] = crc;
+    request_pkt.len++;
+    uint8_t crc = checksum((uint8_t*)&request_pkt);
+    request_pkt.data[0] = crc;
 
-    if (k11_send_command(&k11_request_pkt)) {
-        if (k11_response_meter(cmd_k11_serial_number) == PKT_OK) {
-            meter.serial_number_len = k11_response_pkt.len - MIN_PKT_SIZE;
-            memcpy(meter.serial_number, k11_response_pkt.data, meter.serial_number_len);
+    if (send_command(&request_pkt)) {
+        if (response_meter(cmd_serial_number) == PKT_OK) {
+            meter.serial_number_len = response_pkt.len - MIN_PKT_SIZE;
+            memcpy(meter.serial_number, response_pkt.data, meter.serial_number_len);
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("Serial Number: %s\r\n", meter.serial_number);
 #endif
@@ -425,31 +419,28 @@ _attribute_ram_code_ uint8_t k11_get_serial_number_data() {
     return false;
 }
 
-_attribute_ram_code_ void k11_measure_meter() {
+_attribute_ram_code_ void measure_meter_kaskad11() {
 
-    if (k11_open_channel()) {
+    if (open_channel()) {
 
         if (new_start) {
-            k11_get_amps_data();                /* get amps and check phases num */
-            k11_get_serial_number_data();
-            k11_get_date_release_data();
+            get_serial_number_data_kaskad11();
+            get_date_release_data_kaskad11();
             new_start = false;
         }
+
+        get_amps_data();                    /* get amps and check phases num */
 
         if (phases3) {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("Sorry, three-phase meter!\r\n");
 #endif
         } else {
-            k11_get_tariffs_data();             /* get 3 tariffs        */
-            k11_get_voltage_data();             /* get voltage net ~220 */
-            k11_get_power_data();               /* get power            */
+            get_tariffs_data();             /* get 3 tariffs        */
+            get_voltage_data();             /* get voltage net ~220 */
+            get_power_data();               /* get power            */
         }
-        k11_close_channel();
+        close_channel();
     }
 }
-
-
-
-#endif
 
