@@ -7,7 +7,7 @@
 
 _attribute_data_retention_ uint8_t  tariff_changed = true;
 _attribute_data_retention_ uint8_t  pv_changed = true;
-_attribute_data_retention_ meter_t  meter = {0};
+_attribute_data_retention_ meter_t  meter;
 _attribute_data_retention_ uint8_t  release_month;
 _attribute_data_retention_ uint8_t  release_year;
 _attribute_data_retention_ uint8_t  new_start = true;
@@ -38,6 +38,7 @@ _attribute_ram_code_ uint32_t from24to32(const uint8_t *str) {
 
 _attribute_ram_code_ void set_device_type(device_type_t type) {
 
+    memset(&meter, 0, sizeof(meter_t));
     new_start = true;
 
     switch (type) {
