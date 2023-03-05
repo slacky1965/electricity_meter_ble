@@ -61,6 +61,7 @@ typedef struct __attribute__((packed)) _main_notify_t {
     uint8_t  version;
     uint8_t  encrypted;
     uint32_t address;
+    uint8_t  device_type;
 } main_notify_t;
 
 typedef struct __attribute__((packed)) _bindkey_notify_t {

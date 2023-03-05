@@ -38,6 +38,7 @@ void cmd_parser(void * p) {
         main_notify.version = VERSION;
         main_notify.encrypted = config.save_data.encrypted;
         main_notify.address = config.save_data.address_device;
+        main_notify.device_type = config.save_data.device_type;
         mn_notify = NOTIFY_MAX;
         ble_send_main();
 
