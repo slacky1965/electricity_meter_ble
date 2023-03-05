@@ -368,9 +368,16 @@ _attribute_ram_code_ static void get_amps_data() {
             } else {
                 phases3 = false;
                 pkt_amps_t *pkt_amps = (pkt_amps_t*)&response_pkt;
-    #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+
+                if (meter.amps != pkt_amps->amps) {
+                    meter.amps = pkt_amps->amps;
+                    pva_changed = true;
+                    ampere_notify = NOTIFY_MAX;
+                }
+
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
                 printf("amps: %u,%02u\r\n", pkt_amps->amps/1000, pkt_amps->amps%1000);
-    #endif
+#endif
             }
         }
     }

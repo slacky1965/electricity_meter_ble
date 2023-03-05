@@ -407,6 +407,7 @@ _attribute_ram_code_ static void get_amps_data() {
 
         if (meter.amps != amps) {
             meter.amps = amps;
+            pva_changed = true;
             ampere_notify = NOTIFY_MAX;
         }
 

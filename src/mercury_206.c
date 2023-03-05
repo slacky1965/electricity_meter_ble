@@ -272,6 +272,11 @@ _attribute_ram_code_ static void get_net_params_data() {
             uint8_t *amps_bcd = (uint8_t*)&pkt_net_params->amps;
             amps += from_bcd_to_dec(amps_bcd[0]) * 100;
             amps += from_bcd_to_dec(amps_bcd[1]);
+            if (meter.amps != amps) {
+                meter.amps = amps;
+                pva_changed = true;
+                ampere_notify = NOTIFY_MAX;
+            }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("voltage: %u.%u\r\n", meter.voltage/10, meter.voltage%10);
             printf("power:   %u\r\n", meter.power);
