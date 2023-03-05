@@ -112,7 +112,7 @@ typedef struct __attribute__((packed)) _k11_pkt_power3_t {
 } k11_pkt_power3_t;
 
 void k11_measure_meter();
-void k11_get_serial_number_data();
+uint8_t k11_get_serial_number_data();
 void k11_get_date_release_data();
 
 #endif /* SRC_INCLUDE_KASKAD_11_H_ */

@@ -7,6 +7,7 @@
 #include "cfg.h"
 #include "app_uart.h"
 #include "app.h"
+#include "ble.h"
 
 #define START       0x73
 #define BOUNDARY    0x55
@@ -16,11 +17,11 @@
 #define STUFF_55    0x11
 #define STUFF_73    0x22
 
-_attribute_data_retention_ static k1mt_package_t k1mt_request_pkt;
-_attribute_data_retention_ static k1mt_package_t k1mt_response_pkt;
+_attribute_data_retention_ static package_t request_pkt;
+_attribute_data_retention_ static package_t response_pkt;
 _attribute_data_retention_ static uint8_t        package_buff[PKT_BUFF_MAX_LEN];
 
-_attribute_ram_code_ static uint8_t k1mt_checksum(const uint8_t *src_buffer, uint8_t len) {
+_attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
   // skip 73 55 header (and 55 footer is beyond checksum anyway)
   const uint8_t* table = &src_buffer[2];
   const uint8_t packet_len = len - 4;
@@ -40,54 +41,54 @@ _attribute_ram_code_ static uint8_t k1mt_checksum(const uint8_t *src_buffer, uin
   return crc;
 }
 
-_attribute_ram_code_ static void k1mt_set_command(cmd_kaskad_1_mt_t command) {
+_attribute_ram_code_ static void set_command(command_t command) {
 
-    memset(&k1mt_request_pkt, 0, sizeof(k1mt_package_t));
+    memset(&request_pkt, 0, sizeof(package_t));
 
-    k1mt_request_pkt.start = START;
-    k1mt_request_pkt.boundary = BOUNDARY;
-    k1mt_request_pkt.header.from_to = 1; // to device
-    k1mt_request_pkt.header.address_to = config.save_data.address_device; // = 20109;
-    k1mt_request_pkt.header.address_from = PROG_ADDR;
-    k1mt_request_pkt.header.command = command & 0xff;
-    k1mt_request_pkt.header.password_status = PASSWORD;
+    request_pkt.start = START;
+    request_pkt.boundary = BOUNDARY;
+    request_pkt.header.from_to = 1; // to device
+    request_pkt.header.address_to = config.save_data.address_device; // = 20109;
+    request_pkt.header.address_from = PROG_ADDR;
+    request_pkt.header.command = command & 0xff;
+    request_pkt.header.password_status = PASSWORD;
 
     switch (command) {
-        case cmd_k1mt_open_channel:
-        case cmd_k1mt_tariffs_data:
-        case cmd_k1mt_power_data:
-        case cmd_k1mt_read_configure:
-        case cmd_k1mt_get_info:
-        case cmd_k1mt_test_error:
-        case cmd_k1mt_resource_battery:
-            k1mt_request_pkt.pkt_len = 2 + sizeof(k1mt_package_header_t) + 2;
-            k1mt_request_pkt.data[0] = k1mt_checksum((uint8_t*)&k1mt_request_pkt, k1mt_request_pkt.pkt_len);
-            k1mt_request_pkt.data[1] = BOUNDARY;
+        case cmd_open_channel:
+        case cmd_tariffs_data:
+        case cmd_power_data:
+        case cmd_read_configure:
+        case cmd_get_info:
+        case cmd_test_error:
+        case cmd_resource_battery:
+            request_pkt.pkt_len = 2 + sizeof(package_header_t) + 2;
+            request_pkt.data[0] = checksum((uint8_t*)&request_pkt, request_pkt.pkt_len);
+            request_pkt.data[1] = BOUNDARY;
             break;
-        case cmd_k1mt_amps_data:
-        case cmd_k1mt_volts_data:
-        case cmd_k1mt_serial_number:
-        case cmd_k1mt_date_release:
-        case cmd_k1mt_factory_manufacturer:
-        case cmd_k1mt_name_device:
-        case cmd_k1mt_name_device2:
-            k1mt_request_pkt.header.data_len = 1;
-            k1mt_request_pkt.pkt_len = 2 + sizeof(k1mt_package_header_t) + 3;
-            k1mt_request_pkt.data[0] = (command >> 8) & 0xff;   // sub command
-            k1mt_request_pkt.data[1] = k1mt_checksum((uint8_t*)&k1mt_request_pkt, k1mt_request_pkt.pkt_len);
-            k1mt_request_pkt.data[2] = BOUNDARY;
+        case cmd_amps_data:
+        case cmd_volts_data:
+        case cmd_serial_number:
+        case cmd_date_release:
+        case cmd_factory_manufacturer:
+        case cmd_name_device:
+        case cmd_name_device2:
+            request_pkt.header.data_len = 1;
+            request_pkt.pkt_len = 2 + sizeof(package_header_t) + 3;
+            request_pkt.data[0] = (command >> 8) & 0xff;   // sub command
+            request_pkt.data[1] = checksum((uint8_t*)&request_pkt, request_pkt.pkt_len);
+            request_pkt.data[2] = BOUNDARY;
             break;
         default:
             break;
     }
 }
 
-_attribute_ram_code_ static size_t k1mt_byte_stuffing() {
+_attribute_ram_code_ static size_t byte_stuffing() {
 
     uint8_t *source, *receiver;
     size_t len = 0;
 
-    source = (uint8_t*)&k1mt_request_pkt;
+    source = (uint8_t*)&request_pkt;
     receiver = package_buff;
 
     *(receiver++) = *(source++);
@@ -95,7 +96,7 @@ _attribute_ram_code_ static size_t k1mt_byte_stuffing() {
     *(receiver++) = *(source++);
     len++;
 
-    for (int i = 0; i < (k1mt_request_pkt.pkt_len-3); i++) {
+    for (int i = 0; i < (request_pkt.pkt_len-3); i++) {
         if (*source == BOUNDARY) {
             *(receiver++) = START;
             len++;
@@ -118,11 +119,11 @@ _attribute_ram_code_ static size_t k1mt_byte_stuffing() {
     return len;
 }
 
-_attribute_ram_code_ static size_t k1mt_byte_unstuffing(uint8_t load_len) {
+_attribute_ram_code_ static size_t byte_unstuffing(uint8_t load_len) {
 
     size_t   len = 0;
     uint8_t *source = package_buff;
-    uint8_t *receiver = (uint8_t*)&k1mt_response_pkt;
+    uint8_t *receiver = (uint8_t*)&response_pkt;
 
     *(receiver++) = *(source++);
     len++;
@@ -155,25 +156,25 @@ _attribute_ram_code_ static size_t k1mt_byte_unstuffing(uint8_t load_len) {
     return len;
 }
 
-_attribute_ram_code_ static void k1mt_send_command(cmd_kaskad_1_mt_t command) {
+_attribute_ram_code_ static void send_command(command_t command) {
 
     uint8_t buff_len, len = 0;
 
-    k1mt_set_command(command);
+    set_command(command);
 
-    buff_len = k1mt_byte_stuffing();
+    buff_len = byte_stuffing();
 
     /* three attempts to write to uart */
     for (uint8_t attempt = 0; attempt < 3; attempt++) {
         len = write_bytes_to_uart(package_buff, buff_len);
         if (len == buff_len) {
-            k1mt_request_pkt.load_len = len;
+            request_pkt.load_len = len;
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("send bytes: %u\r\n", len);
 #endif
             break;
         } else {
-            k1mt_request_pkt.load_len = 0;
+            request_pkt.load_len = 0;
         }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Attempt to send data to uart: %u\r\n", attempt+1);
@@ -181,7 +182,7 @@ _attribute_ram_code_ static void k1mt_send_command(cmd_kaskad_1_mt_t command) {
         sleep_ms(250);
     }
 
-    if (k1mt_request_pkt.load_len == 0) {
+    if (request_pkt.load_len == 0) {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Can't send a request pkt\r\n");
 #endif
@@ -189,14 +190,14 @@ _attribute_ram_code_ static void k1mt_send_command(cmd_kaskad_1_mt_t command) {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("request pkt: 0x");
             for (int i = 0; i < len; i++) {
-                printf("%02x", ((uint8_t*)&k1mt_request_pkt)[i]);
+                printf("%02x", ((uint8_t*)&request_pkt)[i]);
             }
             printf("\r\n");
 #endif
     }
 }
 
-_attribute_ram_code_ static pkt_error_t k1mt_response_meter(cmd_kaskad_1_mt_t command) {
+_attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
 
     size_t len, load_size = 0;
     uint8_t err = 0, ch, complete = false;
@@ -250,15 +251,15 @@ _attribute_ram_code_ static pkt_error_t k1mt_response_meter(cmd_kaskad_1_mt_t co
         printf("\r\n");
 #endif
         if (complete) {
-            len = k1mt_byte_unstuffing(load_size);
+            len = byte_unstuffing(load_size);
             if (len) {
-                k1mt_response_pkt.pkt_len = len;
-                uint8_t crc = k1mt_checksum((uint8_t*)&k1mt_response_pkt, k1mt_response_pkt.pkt_len);
-                if (crc == k1mt_response_pkt.data[(k1mt_response_pkt.header.data_len)]) {
-                    k1mt_response_status_t *status = (k1mt_response_status_t*)&k1mt_response_pkt.header.password_status;
+                response_pkt.pkt_len = len;
+                uint8_t crc = checksum((uint8_t*)&response_pkt, response_pkt.pkt_len);
+                if (crc == response_pkt.data[(response_pkt.header.data_len)]) {
+                    response_status_t *status = (response_status_t*)&response_pkt.header.password_status;
                     if (status->error == PKT_OK) {
-                        if (k1mt_response_pkt.header.address_from == config.save_data.address_device) {
-                            if (k1mt_response_pkt.header.command == (command & 0xff)) {
+                        if (response_pkt.header.address_from == config.save_data.address_device) {
+                            if (response_pkt.header.command == (command & 0xff)) {
                                 pkt_error_no = PKT_OK;
                             } else {
                                 pkt_error_no = PKT_ERR_DIFFERENT_COMMAND;
@@ -319,23 +320,23 @@ _attribute_ram_code_ static pkt_error_t k1mt_response_meter(cmd_kaskad_1_mt_t co
     return pkt_error_no;
 }
 
-_attribute_ram_code_ static k1mt_package_t *k1mt_get_pkt_data(cmd_kaskad_1_mt_t command) {
+_attribute_ram_code_ static package_t *get_pkt_data(command_t command) {
 
-    k1mt_send_command(command);
+    send_command(command);
     sleep_ms(200);
-    if (k1mt_request_pkt.load_len > 0) {
-        if (k1mt_response_meter(command) == PKT_OK) {
-            return &k1mt_response_pkt;
+    if (request_pkt.load_len > 0) {
+        if (response_meter(command) == PKT_OK) {
+            return &response_pkt;
         }
     }
     return NULL;
 }
 
-_attribute_ram_code_ uint8_t k1mt_ping_start_data() {
+_attribute_ram_code_ static uint8_t ping_start_data() {
 
-    k1mt_package_t *pkt;
+    package_t *pkt;
 
-    pkt = k1mt_get_pkt_data(cmd_k1mt_open_channel);
+    pkt = get_pkt_data(cmd_open_channel);
 
     if (pkt) {
         return true;
@@ -344,15 +345,15 @@ _attribute_ram_code_ uint8_t k1mt_ping_start_data() {
     return false;
 }
 
-_attribute_ram_code_ void k1mt_get_tariffs_data() {
+_attribute_ram_code_ static void get_tariffs_data() {
 
-    k1mt_pkt_tariffs_t *tariffs_response;
-    k1mt_package_t            *pkt;
+    pkt_tariffs_t *tariffs_response;
+    package_t            *pkt;
 
-    pkt = k1mt_get_pkt_data(cmd_k1mt_tariffs_data);
+    pkt = get_pkt_data(cmd_tariffs_data);
 
     if (pkt) {
-        tariffs_response = (k1mt_pkt_tariffs_t*)pkt->data;
+        tariffs_response = (pkt_tariffs_t*)pkt->data;
 
         if (meter.tariff_1 < tariffs_response->tariff_1) {
             meter.tariff_1 = tariffs_response->tariff_1;
@@ -384,16 +385,16 @@ _attribute_ram_code_ void k1mt_get_tariffs_data() {
     }
 }
 
-_attribute_ram_code_ void k1mt_get_amps_data() {
+_attribute_ram_code_ static void get_amps_data() {
 
-    k1mt_pkt_amps_t *amps_response;
-    k1mt_package_t  *pkt;
+    pkt_amps_t *amps_response;
+    package_t  *pkt;
     uint32_t amps;
 
-    pkt = k1mt_get_pkt_data(cmd_k1mt_amps_data);
+    pkt = get_pkt_data(cmd_amps_data);
 
     if (pkt) {
-        amps_response = (k1mt_pkt_amps_t*)pkt->data;
+        amps_response = (pkt_amps_t*)pkt->data;
         amps = from24to32(amps_response->amps);
         /* pkt->header.params_len & 0x1f == 3 -> amps 2 bytes
          * pkt->header.params_len & 0x1f == 4 -> amps 3 bytes
@@ -407,15 +408,15 @@ _attribute_ram_code_ void k1mt_get_amps_data() {
     }
 }
 
-_attribute_ram_code_ void k1mt_get_voltage_data() {
+_attribute_ram_code_ static void get_voltage_data() {
 
-    k1mt_pkt_volts_t *volts_response;
-    k1mt_package_t   *pkt;
+    pkt_volts_t *volts_response;
+    package_t   *pkt;
 
-    pkt = k1mt_get_pkt_data(cmd_k1mt_volts_data);
+    pkt = get_pkt_data(cmd_volts_data);
 
     if (pkt) {
-        volts_response = (k1mt_pkt_volts_t*)pkt->data;
+        volts_response = (pkt_volts_t*)pkt->data;
         if (meter.voltage != volts_response->volts) {
             meter.voltage = volts_response->volts;
             pv_changed = true;
@@ -431,16 +432,16 @@ _attribute_ram_code_ void k1mt_get_voltage_data() {
     }
 }
 
-_attribute_ram_code_ void k1mt_get_power_data() {
+_attribute_ram_code_ static void get_power_data() {
 
-    k1mt_pkt_power_t *power_response;
-    k1mt_package_t   *pkt;
+    pkt_power_t *power_response;
+    package_t   *pkt;
     uint32_t         power;
 
-    pkt = k1mt_get_pkt_data(cmd_k1mt_power_data);
+    pkt = get_pkt_data(cmd_power_data);
 
     if (pkt) {
-        power_response = (k1mt_pkt_power_t*)pkt->data;
+        power_response = (pkt_power_t*)pkt->data;
         power = from24to32(power_response->power);
         if (meter.power != power) {
             meter.power = power;
@@ -455,82 +456,64 @@ _attribute_ram_code_ void k1mt_get_power_data() {
     }
 }
 
-_attribute_ram_code_ void k1mt_get_serial_number_data() {
-    k1mt_pkt_data31_t *serial_number_response;
-    k1mt_package_t    *pkt;
+_attribute_ram_code_ uint8_t get_serial_number_data_kaskad1mt() {
+    pkt_data31_t *serial_number_response;
+    package_t    *pkt;
 
-    pkt = k1mt_get_pkt_data(cmd_k1mt_serial_number);
+    pkt = get_pkt_data(cmd_serial_number);
 
     if (pkt) {
-        serial_number_response = (k1mt_pkt_data31_t*)pkt;
+        serial_number_response = (pkt_data31_t*)pkt;
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("Serial Number: ");
-        for (int i = 0; i < DATA_MAX_LEN; i++) {
-            if (serial_number_response->data[i] != 0) {
-                printf("%c", serial_number_response->data[i]);
-            }
-            else break;
-        }
-        printf("\r\n");
+        printf("Serial Number: %s\r\n", serial_number_response->data);
 #endif
 
         if (memcmp(meter.serial_number, serial_number_response->data, DATA_MAX_LEN) != 0) {
-            meter.serial_number_len = 0;
-            for (int i = 0; i < DATA_MAX_LEN; i++) {
-                meter.serial_number[i] = serial_number_response->data[i];
-                if (serial_number_response->data[i] != 0) {
-                    meter.serial_number_len++;
-                }
-            }
+            meter.serial_number_len = sprintf((char*)meter.serial_number, "%s", serial_number_response->data);
+            memcpy(serial_number_notify.serial_number, meter.serial_number,
+                   meter.serial_number_len > sizeof(serial_number_notify.serial_number)?
+                   sizeof(serial_number_notify.serial_number):meter.serial_number_len);
             sn_notify = NOTIFY_MAX;
         }
+        return true;
     }
 
+    return false;
 }
 
-_attribute_ram_code_ void k1mt_get_date_release_data() {
+_attribute_ram_code_ void get_date_release_data_kaskad1mt() {
 
-    k1mt_pkt_data31_t *date_release_response;
-    k1mt_package_t    *pkt;
+    pkt_data31_t *date_release_response;
+    package_t    *pkt;
 
-    pkt = k1mt_get_pkt_data(cmd_k1mt_date_release);
+    pkt = get_pkt_data(cmd_date_release);
 
     if (pkt) {
-        date_release_response = (k1mt_pkt_data31_t*)pkt;
+        date_release_response = (pkt_data31_t*)pkt;
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("Date of release: ");
-        for (int i = 0; i < 31; i++) {
-            if (date_release_response->data[i] != 0) {
-                printf("%c", date_release_response->data[i]);
-            }
-            else break;
-        }
-        printf("\r\n");
+        printf("Date of release: %s", date_release_response->data);
 #endif
 
         if (memcpy(meter.date_release, date_release_response->data, DATA_MAX_LEN) != 0) {
-            meter.date_release_len = 0;
-            for (int i = 0; i < DATA_MAX_LEN; i++) {
-                meter.date_release[i] = date_release_response->data[i];
-                if (date_release_response->data[i] != 0) {
-                    meter.date_release_len++;
-                }
-            }
+            meter.date_release_len = sprintf((char*)meter.date_release, "%s", date_release_response->data);
+            memcpy(date_release_notify.date_release, meter.date_release,
+                   meter.date_release_len > sizeof(date_release_notify.date_release)?
+                   sizeof(date_release_notify.date_release):meter.date_release_len);
             dr_notify = NOTIFY_MAX;
         }
     }
 
 }
 
-_attribute_ram_code_ void k1mt_get_configure_data() {
+_attribute_ram_code_ static void get_configure_data() {
 
-    k1mt_pkt_read_cfg_t *read_cfg;
-    k1mt_package_t      *pkt;
+    pkt_read_cfg_t *read_cfg;
+    package_t      *pkt;
 
-    pkt = k1mt_get_pkt_data(cmd_k1mt_read_configure);
+    pkt = get_pkt_data(cmd_read_configure);
 
     if (pkt) {
-        read_cfg = (k1mt_pkt_read_cfg_t*)pkt->data;
+        read_cfg = (pkt_read_cfg_t*)pkt->data;
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("divisor: %u\r\n", divisor(read_cfg->divisor));
 #endif
@@ -540,15 +523,15 @@ _attribute_ram_code_ void k1mt_get_configure_data() {
     }
 }
 
-_attribute_ram_code_ void k1mt_get_resbat_data() {
+_attribute_ram_code_ static void get_resbat_data() {
 
-    k1mt_pkt_resbat_t *resbat;
-    k1mt_package_t    *pkt;
+    pkt_resbat_t *resbat;
+    package_t    *pkt;
 
-    pkt = k1mt_get_pkt_data(cmd_k1mt_resource_battery);
+    pkt = get_pkt_data(cmd_resource_battery);
 
     if (pkt) {
-        resbat = (k1mt_pkt_resbat_t*)pkt->data;
+        resbat = (pkt_resbat_t*)pkt->data;
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Resource battery: %u.%u\r\n", (resbat->worktime*100)/resbat->lifetime,
@@ -570,9 +553,9 @@ _attribute_ram_code_ void k1mt_get_resbat_data() {
 
 
 
-void k1mt_pkt_test(cmd_kaskad_1_mt_t command) {
-    k1mt_package_t *pkt;
-    pkt = k1mt_get_pkt_data(command);
+void pkt_test(command_t command) {
+    package_t *pkt;
+    pkt = get_pkt_data(command);
 
     if (pkt) {
     } else {
@@ -580,20 +563,20 @@ void k1mt_pkt_test(cmd_kaskad_1_mt_t command) {
     }
 }
 
-_attribute_ram_code_ void k1mt_measure_meter() {
+_attribute_ram_code_ void measure_meter_kaskad1mt() {
 
-    if (k1mt_ping_start_data()) {            /* ping to device       */
-        if (new_start) {              /* after reset          */
-            k1mt_get_configure_data();       /* get divisor          */
-            k1mt_get_amps_data();
-            k1mt_get_serial_number_data();
-            k1mt_get_date_release_data();
+    if (ping_start_data()) {           /* ping to device       */
+        if (new_start) {               /* after reset          */
+            get_configure_data();      /* get divisor          */
+            get_serial_number_data_kaskad1mt();
+            get_date_release_data_kaskad1mt();
             new_start = false;
         }
-        k1mt_get_resbat_data();              /* get resource battery */
-        k1mt_get_tariffs_data();             /* get 3 tariffs        */
-        k1mt_get_voltage_data();             /* get voltage net ~220 */
-        k1mt_get_power_data();               /* get power            */
+        get_resbat_data();             /* get resource battery */
+        get_tariffs_data();            /* get 3 tariffs        */
+        get_voltage_data();            /* get voltage net ~220 */
+        get_power_data();              /* get power            */
+        get_amps_data();               /* get amps             */
     }
 }
 

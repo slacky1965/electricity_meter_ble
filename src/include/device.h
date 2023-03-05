@@ -37,9 +37,9 @@ typedef struct __attribute__((packed)) _meter_t {
     uint8_t  date_release_len;              /* lenght of release date             */
     uint8_t  division_factor;               /* 00-0, 01-0.0, 10-0.00, 11-0.000    */
     uint8_t  battery_level;
-    void   (*measure_meter) (void);
-    void   (*get_serial_number_data) (void);
-    void   (*get_date_release_data) (void);
+    void    (*measure_meter) (void);
+    uint8_t (*get_serial_number_data) (void);
+    void    (*get_date_release_data) (void);
 } meter_t;
 
 extern uint8_t tariff_changed;
@@ -52,6 +52,12 @@ extern pkt_error_t pkt_error_no;
 
 uint16_t divisor(const uint8_t division_factor);
 uint32_t from24to32(const uint8_t *str);
-void set_device_type();
+void set_device_type(device_type_t type);
+
+void measure_meter_kaskad1mt();
+uint8_t get_serial_number_data_kaskad1mt();
+void get_date_release_data_kaskad1mt();
+
+
 
 #endif /* SRC_INCLUDE_DEVICE_H_ */

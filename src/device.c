@@ -3,7 +3,7 @@
 #include "stack/ble/ble.h"
 
 #include "device.h"
-#include "kaskad_1_mt.h"
+//#include "kaskad_1_mt.h"
 #include "kaskad_11.h"
 #include "mercury_206.h"
 #include "cfg.h"
@@ -39,31 +39,34 @@ _attribute_ram_code_ uint32_t from24to32(const uint8_t *str) {
     return value;
 }
 
-_attribute_ram_code_ void set_device_type() {
+_attribute_ram_code_ void set_device_type(device_type_t type) {
 
-    switch (config.save_data.device_type) {
-        case device_undefined:
-            config.save_data.device_type = device_kaskad_1_mt;
-            meter.measure_meter = k1mt_measure_meter;
-            meter.get_date_release_data = k1mt_get_date_release_data;
-            meter.get_serial_number_data = k1mt_get_serial_number_data;
-            break;
+    new_start = true;
+
+    switch (type) {
         case device_kaskad_1_mt:
-            meter.measure_meter = k1mt_measure_meter;
-            meter.get_date_release_data = k1mt_get_date_release_data;
-            meter.get_serial_number_data = k1mt_get_serial_number_data;
+            config.save_data.device_type = device_kaskad_1_mt;
+            meter.measure_meter = measure_meter_kaskad1mt;
+            meter.get_date_release_data = get_date_release_data_kaskad1mt;
+            meter.get_serial_number_data = get_serial_number_data_kaskad1mt;
             break;
         case device_kaskad_11:
+            config.save_data.device_type = device_kaskad_11;
             meter.measure_meter = k11_measure_meter;
             meter.get_date_release_data = k11_get_date_release_data;
             meter.get_serial_number_data = k11_get_serial_number_data;
             break;
         case device_mercury_206:
+            config.save_data.device_type = device_mercury_206;
             meter.measure_meter = m206_measure_meter;
             meter.get_date_release_data = m206_get_date_release_data;
-//            meter.get_serial_number_data = m206_get_serial_number_data;
+            meter.get_serial_number_data = m206_get_serial_number_data;
             break;
         default:
+            config.save_data.device_type = device_kaskad_1_mt;
+            meter.measure_meter = measure_meter_kaskad1mt;
+            meter.get_date_release_data = get_date_release_data_kaskad1mt;
+            meter.get_serial_number_data = get_serial_number_data_kaskad1mt;
             break;
     }
 }

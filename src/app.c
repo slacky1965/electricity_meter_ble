@@ -88,7 +88,7 @@ void user_init_normal(void) {
     reset_wl_begin = false;
     flush_buff_uart();
     app_uart_init();
-    set_device_type();
+    set_device_type(config.save_data.device_type);
     meter.measure_meter();
 }
 

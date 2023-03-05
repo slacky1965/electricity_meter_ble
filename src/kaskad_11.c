@@ -403,7 +403,7 @@ _attribute_ram_code_ void k11_get_date_release_data() {
     }
 }
 
-_attribute_ram_code_ void k11_get_serial_number_data() {
+_attribute_ram_code_ uint8_t k11_get_serial_number_data() {
 
     k11_set_header(cmd_k11_serial_number);
 
@@ -418,8 +418,11 @@ _attribute_ram_code_ void k11_get_serial_number_data() {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("Serial Number: %s\r\n", meter.serial_number);
 #endif
+            return true;
         }
     }
+
+    return false;
 }
 
 _attribute_ram_code_ void k11_measure_meter() {
