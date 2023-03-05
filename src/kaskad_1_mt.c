@@ -456,7 +456,7 @@ _attribute_ram_code_ static void get_power_data() {
     }
 }
 
-_attribute_ram_code_ uint8_t get_serial_number_data_kaskad1mt() {
+_attribute_ram_code_ void get_serial_number_data_kaskad1mt() {
     pkt_data31_t *serial_number_response;
     package_t    *pkt;
 
@@ -475,10 +475,7 @@ _attribute_ram_code_ uint8_t get_serial_number_data_kaskad1mt() {
                    sizeof(serial_number_notify.serial_number):meter.serial_number_len);
             sn_notify = NOTIFY_MAX;
         }
-        return true;
     }
-
-    return false;
 }
 
 _attribute_ram_code_ void get_date_release_data_kaskad1mt() {
