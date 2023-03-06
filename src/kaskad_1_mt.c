@@ -405,6 +405,9 @@ _attribute_ram_code_ static void get_amps_data() {
             amps = from24to32(amps_response->amps);
         }
 
+        /* current has 2 bytes in the home assistant */
+        while (amps > 0xffff) amps /= 10;
+
         if (meter.amps != amps) {
             meter.amps = amps;
             pva_changed = true;

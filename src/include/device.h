@@ -31,7 +31,7 @@ typedef struct __attribute__((packed)) _meter_t {
     uint32_t tariff_3;                      /* last value of tariff #3            */
     uint32_t power;                         /* last value of power                */
     uint16_t voltage;                       /* last value of voltage              */
-    uint32_t amps;                          /* last valie of ampere               */
+    uint16_t amps;                          /* last value of ampere               */
     uint8_t  serial_number[DATA_MAX_LEN+1]; /* serial number                      */
     uint8_t  serial_number_len;             /* lenght of serial number            */
     uint8_t  date_release[DATA_MAX_LEN+1];  /* date of release                    */

@@ -170,6 +170,7 @@ void ble_connect_cb(uint8_t e, uint8_t *p, int n) {
     tariff3_notify = 0;
     power_notify   = 0;
     voltage_notify = 0;
+    ampere_notify = 0;
 }
 
 void ble_disconnect_cb(uint8_t e,uint8_t *p, int n) {
@@ -288,7 +289,7 @@ _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
             from32to24(adv_pva_data.pva.power, meter.power);
             adv_pva_data.pva.voltage220 = meter.voltage/10;
             adv_pva_data.pva.battery_level = meter.battery_level;
-            adv_pva_data.pva.amps = meter.amps & 0xffff;
+            adv_pva_data.pva.amps = meter.amps;
 //            adv_pva_data.pva.voltage3_3 = battery_mv;
             if (config.save_data.encrypted) {
                 bthome_encrypt_pva_data_beacon();
@@ -396,7 +397,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
     adv_pva_data.pva.voltage220 = meter.voltage;
 
     adv_pva_data.pva.amps_id = BTHomeID_current;
-    adv_pva_data.pva.amps = meter.amps & 0xffff;
+    adv_pva_data.pva.amps = meter.amps;
 
     adv_pva_data.pva.battery_id = BTHomeID_battery;
     adv_pva_data.pva.battery_level = meter.battery_level;
