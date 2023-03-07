@@ -455,7 +455,7 @@ _attribute_ram_code_ static void get_power_data() {
 
     if (pkt) {
         power_response = (pkt_power_t*)pkt->data;
-        power = from24to32(power_response->power);
+        power = from24to32(power_response->power) * 1000;
         if (meter.power != power) {
             meter.power = power;
             pva_changed = true;
@@ -463,8 +463,8 @@ _attribute_ram_code_ static void get_power_data() {
         }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("power: %u,%02u\r\n", power / divisor(meter.division_factor),
-                                     power % divisor(meter.division_factor));
+        printf("power: %u,%02u\r\n", (power/1000) / divisor(meter.division_factor),
+                                     (power/1000) % divisor(meter.division_factor));
 #endif
     }
 }
