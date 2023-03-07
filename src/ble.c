@@ -287,7 +287,7 @@ _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
             pva_changed = false;
             adv_pva_data.pva.pid++;
             from32to24(adv_pva_data.pva.power, meter.power);
-            adv_pva_data.pva.voltage220 = meter.voltage/10;
+            adv_pva_data.pva.voltage220 = meter.voltage;
             adv_pva_data.pva.battery_level = meter.battery_level;
             adv_pva_data.pva.amps = meter.amps;
 //            adv_pva_data.pva.voltage3_3 = battery_mv;
@@ -304,9 +304,9 @@ _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
         if (tariff_changed) {
             tariff_changed = false;
             adv_tariff_data.tariff.pid++;
-            from32to24(adv_tariff_data.tariff.tariff_1, meter.tariff_1*10);
-            from32to24(adv_tariff_data.tariff.tariff_2, meter.tariff_2*10);
-            from32to24(adv_tariff_data.tariff.tariff_3, meter.tariff_3*10);
+            from32to24(adv_tariff_data.tariff.tariff_1, meter.tariff_1);
+            from32to24(adv_tariff_data.tariff.tariff_2, meter.tariff_2);
+            from32to24(adv_tariff_data.tariff.tariff_3, meter.tariff_3);
             if (config.save_data.encrypted) {
                 bthome_encrypt_tariff_data_beacon();
             }
@@ -372,11 +372,11 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
     adv_tariff_data.tariff.pid = 0;
 
     adv_tariff_data.tariff.tariff1_id = BTHomeID_energy;
-    from32to24(adv_tariff_data.tariff.tariff_1, meter.tariff_1*10);
+    from32to24(adv_tariff_data.tariff.tariff_1, meter.tariff_1);
     adv_tariff_data.tariff.tariff2_id = BTHomeID_energy;
-    from32to24(adv_tariff_data.tariff.tariff_2, meter.tariff_2*10);
+    from32to24(adv_tariff_data.tariff.tariff_2, meter.tariff_2);
     adv_tariff_data.tariff.tariff3_id = BTHomeID_energy;
-    from32to24(adv_tariff_data.tariff.tariff_3, meter.tariff_3*10);
+    from32to24(adv_tariff_data.tariff.tariff_3, meter.tariff_3);
 
     adv_pva_data.flg_size  = 0x02;              /* size  */
     adv_pva_data.flg_type  = GAP_ADTYPE_FLAGS;  /* 0x01  */

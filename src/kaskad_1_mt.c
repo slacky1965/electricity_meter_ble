@@ -355,20 +355,26 @@ _attribute_ram_code_ static void get_tariffs_data() {
     if (pkt) {
         tariffs_response = (pkt_tariffs_t*)pkt->data;
 
-        if (meter.tariff_1 < tariffs_response->tariff_1) {
-            meter.tariff_1 = tariffs_response->tariff_1;
+        uint32_t tariff = tariffs_response->tariff_1 * 10;
+
+        if (meter.tariff_1 < tariff) {
+            meter.tariff_1 = tariff;
             tariff_changed = true;
             tariff1_notify = NOTIFY_MAX;
         }
 
-        if (meter.tariff_2 < tariffs_response->tariff_2) {
-            meter.tariff_2 = tariffs_response->tariff_2;
+        tariff = tariffs_response->tariff_2 * 10;
+
+        if (meter.tariff_2 < tariff) {
+            meter.tariff_2 = tariff;
             tariff_changed = true;
             tariff2_notify = NOTIFY_MAX;
         }
 
-        if (meter.tariff_3 < tariffs_response->tariff_3) {
-            meter.tariff_3 = tariffs_response->tariff_3;
+        tariff = tariffs_response->tariff_3 * 10;
+
+        if (meter.tariff_3 < tariff) {
+            meter.tariff_3 = tariff;
             tariff_changed = true;
             tariff3_notify = NOTIFY_MAX;
         }
@@ -430,8 +436,9 @@ _attribute_ram_code_ static void get_voltage_data() {
 
     if (pkt) {
         volts_response = (pkt_volts_t*)pkt->data;
-        if (meter.voltage != volts_response->volts) {
-            meter.voltage = volts_response->volts;
+        uint16_t volts = volts_response->volts / 10;
+        if (meter.voltage != volts) {
+            meter.voltage = volts;
             pva_changed = true;
             voltage_notify = NOTIFY_MAX;
         }
