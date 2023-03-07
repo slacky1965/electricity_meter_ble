@@ -43,7 +43,6 @@ typedef struct __attribute__((packed)) _package_t {
     package_header_t header;
     uint8_t          data[PKT_BUFF_MAX_LEN];
     uint8_t          pkt_len;
-    uint8_t          load_len;
 } package_t;
 
 typedef struct __attribute__((packed)) _pkt_tariffs_t {
