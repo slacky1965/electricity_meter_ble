@@ -156,7 +156,7 @@ _attribute_ram_code_ static size_t byte_unstuffing(uint8_t load_len) {
     return len;
 }
 
-_attribute_ram_code_ static void send_command(command_t command) {
+_attribute_ram_code_ static uint8_t send_command(command_t command) {
 
     uint8_t buff_len, len = 0;
 
@@ -168,13 +168,12 @@ _attribute_ram_code_ static void send_command(command_t command) {
     for (uint8_t attempt = 0; attempt < 3; attempt++) {
         len = write_bytes_to_uart(package_buff, buff_len);
         if (len == buff_len) {
-            request_pkt.load_len = len;
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("send bytes: %u\r\n", len);
 #endif
             break;
         } else {
-            request_pkt.load_len = 0;
+            len = 0;
         }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Attempt to send data to uart: %u\r\n", attempt+1);
@@ -182,19 +181,22 @@ _attribute_ram_code_ static void send_command(command_t command) {
         sleep_ms(250);
     }
 
-    if (request_pkt.load_len == 0) {
+    if (len == 0) {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Can't send a request pkt\r\n");
 #endif
     } else {
+        sleep_ms(200);
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            printf("request pkt: 0x");
-            for (int i = 0; i < len; i++) {
-                printf("%02x", ((uint8_t*)&request_pkt)[i]);
-            }
-            printf("\r\n");
+        printf("request pkt: 0x");
+        for (int i = 0; i < len; i++) {
+            printf("%02x", ((uint8_t*)&request_pkt)[i]);
+        }
+        printf("\r\n");
 #endif
     }
+
+    return len;
 }
 
 _attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
@@ -322,9 +324,7 @@ _attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
 
 _attribute_ram_code_ static package_t *get_pkt_data(command_t command) {
 
-    send_command(command);
-    sleep_ms(200);
-    if (request_pkt.load_len > 0) {
+    if (send_command(command)) {
         if (response_meter(command) == PKT_OK) {
             return &response_pkt;
         }
