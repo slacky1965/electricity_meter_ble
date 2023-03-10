@@ -376,12 +376,12 @@ _attribute_ram_code_ static void get_tariffs_data() {
         }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("tariff1: %u,%u\r\n", meter.tariff_1 / divisor(meter.division_factor),
-                                     meter.tariff_1 % divisor(meter.division_factor));
-        printf("tariff2: %u,%u\r\n", meter.tariff_2 / divisor(meter.division_factor),
-                                     meter.tariff_2 % divisor(meter.division_factor));
-        printf("tariff3: %u,%u\r\n", meter.tariff_3 / divisor(meter.division_factor),
-                                     meter.tariff_3 % divisor(meter.division_factor));
+        printf("tariff1: %u,%u\r\n", (meter.tariff_1 / 10) / divisor(meter.division_factor),
+                                     (meter.tariff_1 / 10) % divisor(meter.division_factor));
+        printf("tariff2: %u,%u\r\n", (meter.tariff_2 / 10) / divisor(meter.division_factor),
+                                     (meter.tariff_2 / 10) % divisor(meter.division_factor));
+        printf("tariff3: %u,%u\r\n", (meter.tariff_3 / 10) / divisor(meter.division_factor),
+                                     (meter.tariff_3 / 10) % divisor(meter.division_factor));
 #endif
 
     }
