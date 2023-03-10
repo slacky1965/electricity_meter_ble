@@ -15,6 +15,7 @@ _attribute_data_retention_ static package_t request_pkt;
 _attribute_data_retention_ static package_t response_pkt;
 _attribute_data_retention_ static uint8_t   def_password[] = {0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30};
 _attribute_data_retention_ static uint8_t   phases3;
+_attribute_data_retention_ static uint8_t   month_release, year_release;
 
 
 _attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer) {
@@ -54,6 +55,7 @@ _attribute_ram_code_ static uint8_t send_command(package_t *pkt) {
         printf("Can't send a request pkt\r\n");
 #endif
     } else {
+        sleep_ms(200);
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("request pkt: 0x");
         for (int i = 0; i < len; i++) {
@@ -383,6 +385,40 @@ _attribute_ram_code_ static void get_amps_data() {
     }
 }
 
+_attribute_ram_code_ static void get_resbat_data() {
+
+    struct  datetime {
+        uint64_t sec    :6;
+        uint64_t min    :6;
+        uint64_t hour   :5;
+        uint64_t day_n  :3;
+        uint64_t day    :5;
+        uint64_t month  :4;
+        uint64_t year   :7;
+        uint64_t rsv    :28;
+    };
+
+    set_header(cmd_datetime_device);
+
+    request_pkt.len++;
+    uint8_t crc = checksum((uint8_t*)&request_pkt);
+    request_pkt.data[0] = crc;
+
+    if (send_command(&request_pkt)) {
+        if (response_meter(cmd_datetime_device) == PKT_OK) {
+            pkt_datetime_t *pkt_datetime = (pkt_datetime_t*)&response_pkt;
+
+            struct datetime *dt = (struct datetime*)pkt_datetime->datetime;
+
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+            printf("Device date: %02u.%02u.20%02u\r\n", dt->day, dt->month, dt->year);
+#endif
+        }
+    }
+
+
+}
+
 _attribute_ram_code_ void get_date_release_data_kaskad11() {
 
     pkt_release_t *pkt;
@@ -396,6 +432,8 @@ _attribute_ram_code_ void get_date_release_data_kaskad11() {
     if (send_command(&request_pkt)) {
         if (response_meter(cmd_open_channel) == PKT_OK) {
             pkt = (pkt_release_t*)&response_pkt;
+            month_release = pkt->month;
+            year_release = pkt->year;
             meter.date_release_len = sprintf((char*)meter.date_release, "%02u.%02u.%u", pkt->day, pkt->month, pkt->year+2000);
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("Date of release: %s\r\n", meter.date_release_len);
@@ -433,16 +471,17 @@ _attribute_ram_code_ void measure_meter_kaskad11() {
             new_start = false;
         }
 
-        get_amps_data();                    /* get amps and check phases num */
+        get_amps_data();            /* get amps and check phases num */
 
         if (phases3) {
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("Sorry, three-phase meter!\r\n");
 #endif
         } else {
-            get_tariffs_data();             /* get 3 tariffs        */
-            get_voltage_data();             /* get voltage net ~220 */
-            get_power_data();               /* get power            */
+            get_tariffs_data();     /* get 3 tariffs        */
+            get_voltage_data();     /* get voltage net ~220 */
+            get_power_data();       /* get power            */
+            get_resbat_data();      /* get resource battery */
         }
         close_channel();
     }

@@ -4,6 +4,7 @@
 typedef enum _command_t {
     cmd_open_channel    = 0x02,
     cmd_close_channel   = 0x03,
+    cmd_datetime_device = 0x16,
     cmd_net_parameters  = 0x20,
     cmd_serial_number   = 0x25,
     cmd_tariffs_data    = 0x26,
@@ -110,6 +111,15 @@ typedef struct __attribute__((packed)) _pkt_power3_t {
     uint8_t  status;
     uint8_t  crc;
 } pkt_power3_t;
+
+typedef struct __attribute__((packed)) _pkt_datetime_t {
+    uint8_t  len;
+    uint8_t  cmd;
+    uint16_t address;
+    uint8_t  datetime[5];
+    uint8_t  status;
+    uint8_t  crc;
+} pkt_datetime_t;
 
 
 #endif /* SRC_INCLUDE_KASKAD_11_H_ */
