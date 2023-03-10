@@ -40,6 +40,7 @@ _attribute_ram_code_ void set_device_type(device_type_t type) {
 
     memset(&meter, 0, sizeof(meter_t));
     new_start = true;
+    meter.division_factor = 1;
 
     switch (type) {
         case device_kaskad_1_mt:
