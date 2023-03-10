@@ -77,6 +77,7 @@ _attribute_ram_code_ static uint8_t send_command(package_t *pkt) {
         printf("Can't send a request pkt\r\n");
 #endif
     } else {
+        sleep_ms(200);
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("request pkt: 0x");
         for (int i = 0; i < len; i++) {
