@@ -334,9 +334,7 @@ _attribute_ram_code_ static package_t *get_pkt_data(command_t command) {
 
 _attribute_ram_code_ static uint8_t ping_start_data() {
 
-    package_t *pkt;
-
-    pkt = get_pkt_data(cmd_open_channel);
+    package_t *pkt = get_pkt_data(cmd_open_channel);
 
     if (pkt) {
         return true;
@@ -347,13 +345,11 @@ _attribute_ram_code_ static uint8_t ping_start_data() {
 
 _attribute_ram_code_ static void get_tariffs_data() {
 
-    pkt_tariffs_t *tariffs_response;
-    package_t            *pkt;
-
-    pkt = get_pkt_data(cmd_tariffs_data);
+    package_t *pkt = get_pkt_data(cmd_tariffs_data);
 
     if (pkt) {
-        tariffs_response = (pkt_tariffs_t*)pkt->data;
+
+        pkt_tariffs_t *tariffs_response = (pkt_tariffs_t*)pkt->data;
 
         uint32_t tariff = tariffs_response->tariff_1 * 10;
 
@@ -393,14 +389,14 @@ _attribute_ram_code_ static void get_tariffs_data() {
 
 _attribute_ram_code_ static void get_amps_data() {
 
-    pkt_amps_t *amps_response;
-    package_t  *pkt;
     uint32_t amps;
 
-    pkt = get_pkt_data(cmd_amps_data);
+    package_t *pkt = get_pkt_data(cmd_amps_data);
 
     if (pkt) {
-        amps_response = (pkt_amps_t*)pkt->data;
+
+        pkt_amps_t *amps_response = (pkt_amps_t*)pkt->data;
+
         /* pkt->header.data_len == 3 -> amps 2 bytes
          * pkt->header.data_len == 4 -> amps 3 bytes
          */
@@ -429,14 +425,14 @@ _attribute_ram_code_ static void get_amps_data() {
 
 _attribute_ram_code_ static void get_voltage_data() {
 
-    pkt_volts_t *volts_response;
-    package_t   *pkt;
-
-    pkt = get_pkt_data(cmd_volts_data);
+    package_t *pkt = get_pkt_data(cmd_volts_data);
 
     if (pkt) {
-        volts_response = (pkt_volts_t*)pkt->data;
+
+        pkt_volts_t *volts_response = (pkt_volts_t*)pkt->data;
+
         uint16_t volts = volts_response->volts / 10;
+
         if (meter.voltage != volts) {
             meter.voltage = volts;
             pva_changed = true;
@@ -454,15 +450,16 @@ _attribute_ram_code_ static void get_voltage_data() {
 
 _attribute_ram_code_ static void get_power_data() {
 
-    pkt_power_t *power_response;
-    package_t   *pkt;
     uint32_t         power;
 
-    pkt = get_pkt_data(cmd_power_data);
+    package_t *pkt = get_pkt_data(cmd_power_data);
 
     if (pkt) {
-        power_response = (pkt_power_t*)pkt->data;
+
+        pkt_power_t *power_response = (pkt_power_t*)pkt->data;
+
         power = from24to32(power_response->power) * 1000;
+
         if (meter.power != power) {
             meter.power = power;
             pva_changed = true;
@@ -477,13 +474,13 @@ _attribute_ram_code_ static void get_power_data() {
 }
 
 _attribute_ram_code_ void get_serial_number_data_kaskad1mt() {
-    pkt_data31_t *serial_number_response;
-    package_t    *pkt;
 
-    pkt = get_pkt_data(cmd_serial_number);
+    package_t *pkt = get_pkt_data(cmd_serial_number);
 
     if (pkt) {
-        serial_number_response = (pkt_data31_t*)pkt;
+
+        pkt_data31_t *serial_number_response = (pkt_data31_t*)pkt;
+
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Serial Number: %s\r\n", serial_number_response->data);
 #endif
@@ -500,13 +497,12 @@ _attribute_ram_code_ void get_serial_number_data_kaskad1mt() {
 
 _attribute_ram_code_ void get_date_release_data_kaskad1mt() {
 
-    pkt_data31_t *date_release_response;
-    package_t    *pkt;
-
-    pkt = get_pkt_data(cmd_date_release);
+    package_t *pkt = get_pkt_data(cmd_date_release);
 
     if (pkt) {
-        date_release_response = (pkt_data31_t*)pkt;
+
+        pkt_data31_t *date_release_response = (pkt_data31_t*)pkt;
+
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Date of release: %s", date_release_response->data);
 #endif
@@ -524,16 +520,16 @@ _attribute_ram_code_ void get_date_release_data_kaskad1mt() {
 
 _attribute_ram_code_ static void get_configure_data() {
 
-    pkt_read_cfg_t *read_cfg;
-    package_t      *pkt;
-
-    pkt = get_pkt_data(cmd_read_configure);
+    package_t *pkt = get_pkt_data(cmd_read_configure);
 
     if (pkt) {
-        read_cfg = (pkt_read_cfg_t*)pkt->data;
+
+        pkt_read_cfg_t *read_cfg = (pkt_read_cfg_t*)pkt->data;
+
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("divisor: %u\r\n", divisor(read_cfg->divisor));
 #endif
+
         if (meter.division_factor != read_cfg->divisor) {
             meter.division_factor = read_cfg->divisor;
         }
@@ -542,18 +538,17 @@ _attribute_ram_code_ static void get_configure_data() {
 
 _attribute_ram_code_ static void get_resbat_data() {
 
-    pkt_resbat_t *resbat;
-    package_t    *pkt;
-
-    pkt = get_pkt_data(cmd_resource_battery);
+    package_t *pkt = get_pkt_data(cmd_resource_battery);
 
     if (pkt) {
-        resbat = (pkt_resbat_t*)pkt->data;
+
+        pkt_resbat_t *resbat = (pkt_resbat_t*)pkt->data;
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("Resource battery: %u.%u\r\n", (resbat->worktime*100)/resbat->lifetime,
                                              ((resbat->worktime*100)%resbat->lifetime)*100/resbat->lifetime);
 #endif
+
         uint8_t battery_level = (resbat->worktime*100)/resbat->lifetime;
 
         if (((resbat->worktime*100)%resbat->lifetime) >= (resbat->lifetime/2)) {
