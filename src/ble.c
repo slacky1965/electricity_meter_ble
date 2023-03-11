@@ -460,7 +460,6 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
         amps_volts = meter.voltage / get_divisor(config.save_data.divisor.voltage_divisor);
     }
     adv_pva_data.pva.voltage220 = amps_volts;
-    printf("volts :%u, volts_div: %u\r\n", meter.voltage, amps_volts);
 
     adv_pva_data.pva.amps_id = BTHomeID_current;
     if (config.save_data.divisor.current_sign) {

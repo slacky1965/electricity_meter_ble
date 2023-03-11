@@ -151,6 +151,35 @@ void cmd_parser(void * p) {
         len--;
         set_device_type(in_data[len]);
         meter.measure_meter();
+        mn_notify = NOTIFY_MAX;
+        ble_send_main();
+        tariff1_notify = NOTIFY_MAX;
+        tariff2_notify = NOTIFY_MAX;
+        tariff3_notify = NOTIFY_MAX;
+        power_notify   = NOTIFY_MAX;
+        voltage_notify = NOTIFY_MAX;
+        ampere_notify  = NOTIFY_MAX;
+        memset(serial_number_notify.serial_number, 0, sizeof(serial_number_notify.serial_number));
+        sn_notify      = NOTIFY_MAX;
+        memset(date_release_notify.date_release, 0, sizeof(date_release_notify.date_release));
+        dr_notify      = NOTIFY_MAX;
+        tariff_changed = pva_changed = true;
+#if UART_PRINT_DEBUG_ENABLE
+        switch (in_data[len]) {
+            case device_kaskad_1_mt:
+                printf("New device type KACKAD-1-MT\r\n");
+                break;
+            case device_kaskad_11:
+                printf("New device type KACKAD-11\r\n");
+                break;
+            case device_mercury_206:
+                printf("New device type Mercury-206\r\n");
+                break;
+            default:
+                printf("Unknown device type! Default KACKAD-1-MT\r\n");
+                break;
+        }
+#endif /* UART_PRINT_DEBUG_ENABLE */
     } else if (*in_data == CMD_CLEAR_CFG) {
         clear_config();
         main_notify.id = ELECTRICITYMETER_ID;
@@ -194,7 +223,7 @@ void cmd_parser(void * p) {
             pva_changed = true;
             tariff_changed = true;
 #if UART_PRINT_DEBUG_ENABLE
-            printf("New divisor: 0x%02x\r\n", config.save_data.divisor);
+            printf("New divisor: 0x%04x\r\n", config.save_data.divisor);
 #endif /* UART_PRINT_DEBUG_ENABLE */
         }
     } else {

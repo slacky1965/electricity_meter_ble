@@ -66,7 +66,7 @@ extern pkt_error_t pkt_error_no;
 
 uint16_t get_divisor(const uint8_t division_factor);
 uint32_t from24to32(const uint8_t *str);
-void set_device_type(device_type_t type);
+uint8_t set_device_type(device_type_t type);
 
 void measure_meter_kaskad1mt();
 void get_serial_number_data_kaskad1mt();
