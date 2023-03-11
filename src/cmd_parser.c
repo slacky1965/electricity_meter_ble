@@ -151,6 +151,8 @@ void cmd_parser(void * p) {
         len--;
         set_device_type(in_data[len]);
         meter.measure_meter();
+        main_notify.device_type = config.save_data.device_type;
+        main_notify.divisor = config.save_data.divisor;
         mn_notify = NOTIFY_MAX;
         ble_send_main();
         tariff1_notify = NOTIFY_MAX;

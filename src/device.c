@@ -41,12 +41,14 @@ _attribute_ram_code_ uint8_t set_device_type(device_type_t type) {
     memset(&meter, 0, sizeof(meter_t));
     new_start = true;
     uint8_t save = false;
+    uint16_t divisor;
 
     switch (type) {
         case device_kaskad_1_mt:
             if (config.save_data.device_type != device_kaskad_1_mt) {
                 config.save_data.device_type = device_kaskad_1_mt;
-                memset(&config.save_data.divisor, 0, sizeof(divisor_t));
+                divisor = 0x0a4f;   /* power 1000, voltage 0.1, amps 0.1, tariffs 10 */
+                memcpy(&config.save_data.divisor, &divisor, sizeof(divisor_t));
                 write_config();
                 save = true;
             }
@@ -78,7 +80,8 @@ _attribute_ram_code_ uint8_t set_device_type(device_type_t type) {
             break;
         default:
             config.save_data.device_type = device_kaskad_1_mt;
-            memset(&config.save_data.divisor, 0, sizeof(divisor_t));
+            divisor = 0x0a4f;   /* power 1000, voltage 0.1, amps 0.1, tariffs 10 */
+            memcpy(&config.save_data.divisor, &divisor, sizeof(divisor_t));
             meter.measure_meter = measure_meter_kaskad1mt;
             meter.get_date_release_data = get_date_release_data_kaskad1mt;
             meter.get_serial_number_data = get_serial_number_data_kaskad1mt;
