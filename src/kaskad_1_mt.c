@@ -19,7 +19,8 @@
 
 _attribute_data_retention_ static package_t request_pkt;
 _attribute_data_retention_ static package_t response_pkt;
-_attribute_data_retention_ static uint8_t        package_buff[PKT_BUFF_MAX_LEN];
+_attribute_data_retention_ static uint8_t   divisor;
+_attribute_data_retention_ static uint8_t   package_buff[PKT_BUFF_MAX_LEN];
 
 _attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
   // skip 73 55 header (and 55 footer is beyond checksum anyway)
@@ -186,7 +187,7 @@ _attribute_ram_code_ static uint8_t send_command(command_t command) {
         printf("Can't send a request pkt\r\n");
 #endif
     } else {
-        sleep_ms(200);
+        sleep_ms(100);
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("request pkt: 0x");
         for (int i = 0; i < len; i++) {
@@ -351,7 +352,7 @@ _attribute_ram_code_ static void get_tariffs_data() {
 
         pkt_tariffs_t *tariffs_response = (pkt_tariffs_t*)pkt->data;
 
-        uint32_t tariff = tariffs_response->tariff_1 * 10;
+        uint32_t tariff = tariffs_response->tariff_1;
 
         if (meter.tariff_1 < tariff) {
             meter.tariff_1 = tariff;
@@ -359,7 +360,7 @@ _attribute_ram_code_ static void get_tariffs_data() {
             tariff1_notify = NOTIFY_MAX;
         }
 
-        tariff = tariffs_response->tariff_2 * 10;
+        tariff = tariffs_response->tariff_2;
 
         if (meter.tariff_2 < tariff) {
             meter.tariff_2 = tariff;
@@ -367,7 +368,7 @@ _attribute_ram_code_ static void get_tariffs_data() {
             tariff2_notify = NOTIFY_MAX;
         }
 
-        tariff = tariffs_response->tariff_3 * 10;
+        tariff = tariffs_response->tariff_3;
 
         if (meter.tariff_3 < tariff) {
             meter.tariff_3 = tariff;
@@ -376,12 +377,12 @@ _attribute_ram_code_ static void get_tariffs_data() {
         }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("tariff1: %u,%u\r\n", (meter.tariff_1 / 10) / divisor(meter.division_factor),
-                                     (meter.tariff_1 / 10) % divisor(meter.division_factor));
-        printf("tariff2: %u,%u\r\n", (meter.tariff_2 / 10) / divisor(meter.division_factor),
-                                     (meter.tariff_2 / 10) % divisor(meter.division_factor));
-        printf("tariff3: %u,%u\r\n", (meter.tariff_3 / 10) / divisor(meter.division_factor),
-                                     (meter.tariff_3 / 10) % divisor(meter.division_factor));
+        printf("tariff1: %u,%u\r\n", meter.tariff_1 / get_divisor(divisor),
+                                     meter.tariff_1 % get_divisor(divisor));
+        printf("tariff2: %u,%u\r\n", meter.tariff_2 / get_divisor(divisor),
+                                     meter.tariff_2 % get_divisor(divisor));
+        printf("tariff3: %u,%u\r\n", meter.tariff_3 / get_divisor(divisor),
+                                     meter.tariff_3 % get_divisor(divisor));
 #endif
 
     }
@@ -431,18 +432,16 @@ _attribute_ram_code_ static void get_voltage_data() {
 
         pkt_volts_t *volts_response = (pkt_volts_t*)pkt->data;
 
-        uint16_t volts = volts_response->volts / 10;
-
-        if (meter.voltage != volts) {
-            meter.voltage = volts;
+        if (meter.voltage != volts_response->volts) {
+            meter.voltage = volts_response->volts;
             pva_changed = true;
             voltage_notify = NOTIFY_MAX;
         }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
         printf("phase: %u, volts: %u,%02u\r\n", volts_response->phase_num,
-                                                volts_response->volts / divisor(meter.division_factor),
-                                                volts_response->volts % divisor(meter.division_factor));
+                                                volts_response->volts / get_divisor(divisor),
+                                                volts_response->volts % get_divisor(divisor));
 #endif
 
     }
@@ -458,7 +457,7 @@ _attribute_ram_code_ static void get_power_data() {
 
         pkt_power_t *power_response = (pkt_power_t*)pkt->data;
 
-        power = from24to32(power_response->power) * 1000;
+        power = from24to32(power_response->power);
 
         if (meter.power != power) {
             meter.power = power;
@@ -467,8 +466,7 @@ _attribute_ram_code_ static void get_power_data() {
         }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("power: %u,%02u\r\n", (power/1000) / divisor(meter.division_factor),
-                                     (power/1000) % divisor(meter.division_factor));
+        printf("power: %u,%02u\r\n", power / get_divisor(divisor), power % get_divisor(divisor));
 #endif
     }
 }
@@ -527,12 +525,10 @@ _attribute_ram_code_ static void get_configure_data() {
         pkt_read_cfg_t *read_cfg = (pkt_read_cfg_t*)pkt->data;
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-        printf("divisor: %u\r\n", divisor(read_cfg->divisor));
+        printf("divisor: %u\r\n", get_divisor(read_cfg->divisor));
 #endif
 
-        if (meter.division_factor != read_cfg->divisor) {
-            meter.division_factor = read_cfg->divisor;
-        }
+        divisor = read_cfg->divisor;
     }
 }
 

@@ -10,11 +10,12 @@
 #define MEASUREMENT_PERIOD 1                /* in minutes                           */
 
 typedef struct __attribute__((packed)) _save_data_t {
-    uint32_t id;                            /* id - ID_DATA                         */
-    uint8_t  device_type;                   /* manufacturer of electric meters      */
-    uint32_t address_device;                /* see address on dislpay ID-20109      */
-    uint8_t  bindkey[16];                   /* secret key                           */
-    uint8_t  encrypted;                     /* non-encrypted = 0, encrypted = 1     */
+    uint32_t    id;                         /* id - ID_DATA                         */
+    uint8_t     device_type;                /* manufacturer of electric meters      */
+    uint32_t    address_device;             /* see address on dislpay ID-20109      */
+    uint8_t     bindkey[16];                /* secret key                           */
+    uint8_t     encrypted;                  /* non-encrypted = 0, encrypted = 1     */
+    divisor_t   divisor;                    /* see device.h                         */
 } save_data_t;
 
 /* must be no more than FLASH_PAGE_SIZE (256) bytes */

@@ -268,8 +268,8 @@ _attribute_ram_code_ static void get_tariffs_data() {
                             tariff1_notify = NOTIFY_MAX;
                         }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-                        printf("tariff1: %u,%u\r\n", meter.tariff_1 / divisor(meter.division_factor),
-                                                     meter.tariff_1 % divisor(meter.division_factor));
+                        printf("tariff1: %u,%u\r\n", meter.tariff_1 / get_divisor(0),
+                                                     meter.tariff_1 % get_divisor(0));
 #endif
                         break;
                     case 2:
@@ -279,8 +279,8 @@ _attribute_ram_code_ static void get_tariffs_data() {
                             tariff1_notify = NOTIFY_MAX;
                         }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-                        printf("tariff2: %u,%u\r\n", meter.tariff_2 / divisor(meter.division_factor),
-                                                     meter.tariff_2 % divisor(meter.division_factor));
+                        printf("tariff2: %u,%u\r\n", meter.tariff_2 / get_divisor(0),
+                                                     meter.tariff_2 % get_divisor(0));
 #endif
                         break;
                     case 3:
@@ -290,8 +290,8 @@ _attribute_ram_code_ static void get_tariffs_data() {
                             tariff1_notify = NOTIFY_MAX;
                         }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-                        printf("tariff3: %u,%u\r\n", meter.tariff_3 / divisor(meter.division_factor),
-                                                     meter.tariff_3 % divisor(meter.division_factor));
+                        printf("tariff3: %u,%u\r\n", meter.tariff_3 / get_divisor(0),
+                                                     meter.tariff_3 % get_divisor(0));
 #endif
                         break;
                     default:
@@ -327,8 +327,7 @@ _attribute_ram_code_ static void get_voltage_data() {
                 voltage_notify = NOTIFY_MAX;
             }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            printf("volts: %u,%02u\r\n", pkt_voltage->voltage / divisor(meter.division_factor),
-                                         pkt_voltage->voltage % divisor(meter.division_factor));
+            printf("volts: %u,%02u\r\n", pkt_voltage->voltage / get_divisor(0), pkt_voltage->voltage % get_divisor(0));
 #endif
 
         }
@@ -350,8 +349,7 @@ _attribute_ram_code_ static void get_power_data() {
             }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            printf("power: %u,%02u\r\n", power / divisor(meter.division_factor),
-                                         power % divisor(meter.division_factor));
+            printf("power: %u,%02u\r\n", power / get_divisor(0), power % get_divisor(0));
 #endif
         }
     }
