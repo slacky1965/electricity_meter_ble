@@ -35,7 +35,7 @@ typedef enum {
     BTHomeID_count16                    = 0x3D,     /* uint   (2 bytes), 1                              */
     BTHomeID_count32                    = 0x3E,     /* uint   (4 bytes), 1                              */
     BTHomeID_current                    = 0x43,     /* uint16 (2 bytes), 0.001, A                       */
-    BTHomeID_dewpoint                   = 0x08,     /* sint16 (2 bytes), 0.01,  °C                      */
+    BTHomeID_dewpoint                   = 0x08,     /* sint16 (2 bytes), 0.01,  °C                     */
     BTHomeID_distance_mm                = 0x40,     /* uint16 (2 bytes), 1,     mm                      */
     BTHomeID_distance_m                 = 0x41,     /* uint16 (2 bytes), 0.1,   m                       */
     BTHomeID_duration                   = 0x42,     /* uint24 (3 bytes), 0.001, s                       */
@@ -51,10 +51,10 @@ typedef enum {
     BTHomeID_pm10                       = 0x0E,     /* uint16 (2 bytes), 1,     ug/m3                   */
     BTHomeID_power                      = 0x0B,     /* uint24 (3 bytes), 0.01,  W                       */
     BTHomeID_pressure                   = 0x04,     /* uint24 (3 bytes), 0.01,  hPa                     */
-    BTHomeID_rotation                   = 0x3F,     /* sint16 (2 bytes), 0.1,   °                       */
+    BTHomeID_rotation                   = 0x3F,     /* sint16 (2 bytes), 0.1,   °                      */
     BTHomeID_speed                      = 0x44,     /* uint16 (2 bytes), 0.01,  m/s                     */
-    BTHomeID_temperature                = 0x45,     /* sint16 (2 bytes), 0.1,   °C                      */
-    BTHomeID_temperature_01             = 0x02,     /* sint16 (2 bytes), 0.01,  °C                      */
+    BTHomeID_temperature                = 0x45,     /* sint16 (2 bytes), 0.1,   °C                     */
+    BTHomeID_temperature_01             = 0x02,     /* sint16 (2 bytes), 0.01,  °C                     */
     BTHomeID_tvoc                       = 0x13,     /* uint16 (2 bytes), 1,     ug/m3                   */
     BTHomeID_voltage_001                = 0x0C,     /* uint16 (2 bytes), 0.001, V                       */
     BTHomeID_voltage                    = 0x4A,     /* uint16 (2 bytes), 0.1,   V                       */
