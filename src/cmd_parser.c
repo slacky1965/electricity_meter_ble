@@ -39,6 +39,7 @@ void cmd_parser(void * p) {
         main_notify.encrypted = config.save_data.encrypted;
         main_notify.address = config.save_data.address_device;
         main_notify.device_type = config.save_data.device_type;
+        main_notify.divisor = config.save_data.divisor;
         mn_notify = NOTIFY_MAX;
         ble_send_main();
 
@@ -150,6 +151,37 @@ void cmd_parser(void * p) {
         len--;
         set_device_type(in_data[len]);
         meter.measure_meter();
+        main_notify.device_type = config.save_data.device_type;
+        main_notify.divisor = config.save_data.divisor;
+        mn_notify = NOTIFY_MAX;
+        ble_send_main();
+        tariff1_notify = NOTIFY_MAX;
+        tariff2_notify = NOTIFY_MAX;
+        tariff3_notify = NOTIFY_MAX;
+        power_notify   = NOTIFY_MAX;
+        voltage_notify = NOTIFY_MAX;
+        ampere_notify  = NOTIFY_MAX;
+        memset(serial_number_notify.serial_number, 0, sizeof(serial_number_notify.serial_number));
+        sn_notify      = NOTIFY_MAX;
+        memset(date_release_notify.date_release, 0, sizeof(date_release_notify.date_release));
+        dr_notify      = NOTIFY_MAX;
+        tariff_changed = pva_changed = true;
+#if UART_PRINT_DEBUG_ENABLE
+        switch (in_data[len]) {
+            case device_kaskad_1_mt:
+                printf("New device type KACKAD-1-MT\r\n");
+                break;
+            case device_kaskad_11:
+                printf("New device type KACKAD-11\r\n");
+                break;
+            case device_mercury_206:
+                printf("New device type Mercury-206\r\n");
+                break;
+            default:
+                printf("Unknown device type! Default KACKAD-1-MT\r\n");
+                break;
+        }
+#endif /* UART_PRINT_DEBUG_ENABLE */
     } else if (*in_data == CMD_CLEAR_CFG) {
         clear_config();
         main_notify.id = ELECTRICITYMETER_ID;
@@ -162,6 +194,7 @@ void cmd_parser(void * p) {
         tariff3_notify = NOTIFY_MAX;
         power_notify   = NOTIFY_MAX;
         voltage_notify = NOTIFY_MAX;
+        ampere_notify  = NOTIFY_MAX;
         memset(serial_number_notify.serial_number, 0, sizeof(serial_number_notify.serial_number));
         sn_notify      = NOTIFY_MAX;
         memset(date_release_notify.date_release, 0, sizeof(date_release_notify.date_release));
@@ -174,6 +207,27 @@ void cmd_parser(void * p) {
 #if UART_PRINT_DEBUG_ENABLE
         printf("Clear config (measurement data)\r\n");
 #endif /* UART_PRINT_DEBUG_ENABLE */
+    } else if (*in_data == CMD_SET_DIVISOR) {
+        uint16_t divisor = 0;
+        len--;
+        if (len == 1) {
+            divisor = in_data[len];
+            memcpy(&config.save_data.divisor, &divisor, sizeof(divisor_t));
+        }
+        else if (len == 2) {
+            divisor = in_data[len--] & 0xff;
+            divisor |= (in_data[len] << 8) & 0xff00;
+            memcpy(&config.save_data.divisor, &divisor, sizeof(divisor_t));
+        }
+
+        if (len) {
+            write_config();
+            pva_changed = true;
+            tariff_changed = true;
+#if UART_PRINT_DEBUG_ENABLE
+            printf("New divisor: 0x%04x\r\n", config.save_data.divisor);
+#endif /* UART_PRINT_DEBUG_ENABLE */
+        }
     } else {
 #if UART_PRINT_DEBUG_ENABLE
         printf("Unknown or incomplete command 0x%X\r\n", *in_data);

@@ -1,8 +1,10 @@
 #ifndef SRC_INCLUDE_DEVICE_H_
 #define SRC_INCLUDE_DEVICE_H_
 
-#define PKT_BUFF_MAX_LEN     128        /* max len read from uart          */
-#define DATA_MAX_LEN         30         /* do not change!                  */
+#define PKT_BUFF_MAX_LEN    128         /* max len read from uart          */
+#define DATA_MAX_LEN        30          /* do not change!                  */
+#define MULTIPLIER          1
+#define DIVISOR             0
 
 typedef enum _device_type_t {
     device_undefined = 0,
@@ -10,6 +12,18 @@ typedef enum _device_type_t {
     device_kaskad_11,
     device_mercury_206
 } device_type_t;
+
+typedef struct __attribute__((packed)) _divisor_t {
+    uint16_t power_divisor      :2;     /* 00-0, 01-10, 10-100, 11-1000     */
+    uint16_t power_sign         :1;     /* 0 - divisor, 1 - multiplier      */
+    uint16_t voltage_divisor    :2;
+    uint16_t voltage_sign       :1;
+    uint16_t current_divisor    :2;
+    uint16_t current_sign       :1;
+    uint16_t tariffs_divisor    :2;
+    uint16_t tariffs_sign       :1;
+    uint16_t reserve            :4;
+} divisor_t;
 
 typedef enum _pkt_error_t {
     PKT_OK  = 0,
@@ -26,17 +40,16 @@ typedef enum _pkt_error_t {
 } pkt_error_t;
 
 typedef struct __attribute__((packed)) _meter_t {
-    uint32_t tariff_1;                      /* last value of tariff #1            */
-    uint32_t tariff_2;                      /* last value of tariff #2            */
-    uint32_t tariff_3;                      /* last value of tariff #3            */
-    uint32_t power;                         /* last value of power                */
-    uint16_t voltage;                       /* last value of voltage              */
-    uint16_t amps;                          /* last value of ampere               */
-    uint8_t  serial_number[DATA_MAX_LEN+1]; /* serial number                      */
-    uint8_t  serial_number_len;             /* lenght of serial number            */
-    uint8_t  date_release[DATA_MAX_LEN+1];  /* date of release                    */
-    uint8_t  date_release_len;              /* lenght of release date             */
-    uint8_t  division_factor;               /* 00-0, 01-0.0, 10-0.00, 11-0.000    */
+    uint32_t tariff_1;                      /* last value of tariff #1      */
+    uint32_t tariff_2;                      /* last value of tariff #2      */
+    uint32_t tariff_3;                      /* last value of tariff #3      */
+    uint32_t power;                         /* last value of power          */
+    uint16_t voltage;                       /* last value of voltage        */
+    uint16_t amps;                          /* last value of ampere         */
+    uint8_t  serial_number[DATA_MAX_LEN+1]; /* serial number                */
+    uint8_t  serial_number_len;             /* lenght of serial number      */
+    uint8_t  date_release[DATA_MAX_LEN+1];  /* date of release              */
+    uint8_t  date_release_len;              /* lenght of release date       */
     uint8_t  battery_level;
     void   (*measure_meter) (void);
     void   (*get_serial_number_data) (void);
@@ -51,9 +64,9 @@ extern uint8_t release_year;
 extern uint8_t new_start;
 extern pkt_error_t pkt_error_no;
 
-uint16_t divisor(const uint8_t division_factor);
+uint16_t get_divisor(const uint8_t division_factor);
 uint32_t from24to32(const uint8_t *str);
-void set_device_type(device_type_t type);
+uint8_t set_device_type(device_type_t type);
 
 void measure_meter_kaskad1mt();
 void get_serial_number_data_kaskad1mt();

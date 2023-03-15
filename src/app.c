@@ -82,7 +82,6 @@ void user_init_normal(void) {
     adc_power_on_sar_adc(OFF);
 	random_generator_init();  //this is must
     init_config();
-    init_ble();
     battery_mv = get_battery_mv();
     measure_interval  = 0;
     battery_interval  = 0;
@@ -91,6 +90,7 @@ void user_init_normal(void) {
     app_uart_init();
     set_device_type(config.save_data.device_type);
     meter.measure_meter();
+    init_ble();
 }
 
 _attribute_ram_code_ void user_init_deepRetn(void) {

@@ -148,11 +148,10 @@ _attribute_ram_code_ void write_config() {
 
 _attribute_ram_code_ void clear_config() {
 
-    memset(&meter, 0, sizeof(meter_t));
     memset(&config.save_data, 0, sizeof(config.save_data));
     config.save_data.id = ID_DATA;
     config.measurement_period = MEASUREMENT_PERIOD;
-    write_config();
+    if (!set_device_type(device_kaskad_1_mt)) write_config();
     tariff_changed = true;
     pva_changed = true;
 }

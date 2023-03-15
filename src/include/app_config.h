@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#define VERSION                 0x13    /* BCD format (0x10 -> '1.0')   */
+#define VERSION                 0x14    /* BCD format (0x10 -> '1.0')   */
 #define ELECTRICITYMETER_ID     0xFEDA  /* uint16_t                     */
 #define BINDKEY_NOTIFY_ID       0xFEDB  /* uint16_t                     */
 #define SERIAL_NUMBER_ID        0xFEDC
