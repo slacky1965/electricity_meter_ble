@@ -176,14 +176,14 @@ _attribute_ram_code_ static uint8_t send_command(command_t command) {
         } else {
             len = 0;
         }
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("Attempt to send data to uart: %u\r\n", attempt+1);
 #endif
         sleep_ms(250);
     }
 
     if (len == 0) {
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("Can't send a request pkt\r\n");
 #endif
     } else {
@@ -285,7 +285,7 @@ _attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
         }
     }
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
     switch (pkt_error_no) {
         case PKT_ERR_TIMEOUT:
             printf("Response timed out\r\n");
@@ -376,7 +376,7 @@ _attribute_ram_code_ static void get_tariffs_data() {
             tariff3_notify = NOTIFY_MAX;
         }
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("tariff1: %u,%u\r\n", meter.tariff_1 / get_divisor(divisor),
                                      meter.tariff_1 % get_divisor(divisor));
         printf("tariff2: %u,%u\r\n", meter.tariff_2 / get_divisor(divisor),
@@ -417,7 +417,7 @@ _attribute_ram_code_ static void get_amps_data() {
             ampere_notify = NOTIFY_MAX;
         }
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("phase: %u, amps: %u,%02u\r\n", amps_response->phase_num, amps/1000, amps%1000);
 #endif
 
@@ -438,7 +438,7 @@ _attribute_ram_code_ static void get_voltage_data() {
             voltage_notify = NOTIFY_MAX;
         }
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("phase: %u, volts: %u,%02u\r\n", volts_response->phase_num,
                                                 volts_response->volts / get_divisor(divisor),
                                                 volts_response->volts % get_divisor(divisor));
@@ -465,7 +465,7 @@ _attribute_ram_code_ static void get_power_data() {
             power_notify = NOTIFY_MAX;
         }
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("power: %u,%02u\r\n", power / get_divisor(divisor), power % get_divisor(divisor));
 #endif
     }
@@ -479,7 +479,7 @@ _attribute_ram_code_ void get_serial_number_data_kaskad1mt() {
 
         pkt_data31_t *serial_number_response = (pkt_data31_t*)pkt;
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("Serial Number: %s\r\n", serial_number_response->data);
 #endif
 
@@ -501,7 +501,7 @@ _attribute_ram_code_ void get_date_release_data_kaskad1mt() {
 
         pkt_data31_t *date_release_response = (pkt_data31_t*)pkt;
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("Date of release: %s", date_release_response->data);
 #endif
 
@@ -524,7 +524,7 @@ _attribute_ram_code_ static void get_configure_data() {
 
         pkt_read_cfg_t *read_cfg = (pkt_read_cfg_t*)pkt->data;
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("divisor: %u\r\n", get_divisor(read_cfg->divisor));
 #endif
 
@@ -540,7 +540,7 @@ _attribute_ram_code_ static void get_resbat_data() {
 
         pkt_resbat_t *resbat = (pkt_resbat_t*)pkt->data;
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("Resource battery: %u.%u\r\n", (resbat->worktime*100)/resbat->lifetime,
                                              ((resbat->worktime*100)%resbat->lifetime)*100/resbat->lifetime);
 #endif
