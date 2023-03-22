@@ -1,7 +1,7 @@
 #ifndef SRC_INCLUDE_APP_UART_H_
 #define SRC_INCLUDE_APP_UART_H_
 
-#define UART_DEBUG     ON
+#define UART_DEBUG     OFF
 #define UART_DATA_LEN  188
 #define UART_BUFF_SIZE 1024             /* size ring buffer  */
 #define UART_BUFF_MASK UART_BUFF_SIZE-1 /* mask ring buffer  */

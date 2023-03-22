@@ -74,16 +74,12 @@ void app_uart_init() {
     uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 
     switch (config.save_data.device_type) {
-        case device_undefined:
-            config.save_data.device_type = device_kaskad_1_mt;
-            baudrate = 9600;
-            break;
-        case device_kaskad_1_mt:
-        case device_mercury_206:
-            baudrate = 9600;
-            break;
         case device_kaskad_11:
             baudrate = 2400;
+            break;
+        default:
+            baudrate = 9600;
+            break;
     }
 
     uart_init_baudrate(baudrate, CLOCK_SYS_CLOCK_HZ, PARITY_NONE, STOP_BIT_ONE);

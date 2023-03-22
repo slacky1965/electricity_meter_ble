@@ -10,7 +10,8 @@ typedef enum _device_type_t {
     device_undefined = 0,
     device_kaskad_1_mt,
     device_kaskad_11,
-    device_mercury_206
+    device_mercury_206,
+    device_energomera_ce102m
 } device_type_t;
 
 typedef struct __attribute__((packed)) _divisor_t {
@@ -67,6 +68,7 @@ extern pkt_error_t pkt_error_no;
 uint16_t get_divisor(const uint8_t division_factor);
 uint32_t from24to32(const uint8_t *str);
 uint8_t set_device_type(device_type_t type);
+void print_error(pkt_error_t err_no);
 
 void measure_meter_kaskad1mt();
 void get_serial_number_data_kaskad1mt();
@@ -77,5 +79,8 @@ void get_date_release_data_kaskad11();
 void measure_meter_mercury206();
 void get_serial_number_data_mercury206();
 void get_date_release_data_mercury206();
+void measure_meter_energomera_ce102m();
+void get_serial_number_data_energomera_ce102m();
+void get_date_release_data_energomera_ce102m();
 
 #endif /* SRC_INCLUDE_DEVICE_H_ */

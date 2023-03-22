@@ -15,6 +15,7 @@ $(OUT_PATH)/src/device.o \
 $(OUT_PATH)/src/kaskad_1_mt.o \
 $(OUT_PATH)/src/kaskad_11.o \
 $(OUT_PATH)/src/mercury_206.o \
+$(OUT_PATH)/src/energomera_ce102m.o \
 $(OUT_PATH)/src/main.o
 
 # Each subdirectory must supply rules for building sources it contributes
