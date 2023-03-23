@@ -82,7 +82,7 @@ void user_init_normal(void) {
     adc_power_on_sar_adc(OFF);
 	random_generator_init();  //this is must
     init_config();
-    battery_mv = get_battery_mv();
+//    battery_mv = get_battery_mv();
     measure_interval  = 0;
     battery_interval  = 0;
     reset_wl_begin = false;

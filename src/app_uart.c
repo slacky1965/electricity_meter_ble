@@ -10,12 +10,6 @@
 
 static uint32_t baudrate;
 
-#if (ELECTRICITY_TYPE == KASKAD_1_MT || ELECTRICITY_TYPE == MERCURY_206)
-#define BAUDRATE    9600
-#elif (ELECTRICITY_TYPE == KASKAD_11)
-#define BAUDRATE    2400
-#endif
-
 _attribute_data_retention_ uart_data_t rec_buff = {0,  {0, } };
 _attribute_data_retention_ uart_data_t trans_buff = {0,   {0, } };
 _attribute_data_retention_ uint8_t     uart_buff[UART_BUFF_SIZE];

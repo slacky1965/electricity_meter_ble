@@ -11,7 +11,8 @@ typedef enum _device_type_t {
     device_kaskad_1_mt,
     device_kaskad_11,
     device_mercury_206,
-    device_energomera_ce102m
+    device_energomera_ce102m,
+    device_energomera_ce102
 } device_type_t;
 
 typedef struct __attribute__((packed)) _divisor_t {
@@ -82,5 +83,6 @@ void get_date_release_data_mercury206();
 void measure_meter_energomera_ce102m();
 void get_serial_number_data_energomera_ce102m();
 void get_date_release_data_energomera_ce102m();
+void measure_meter_energomera_ce102();
 
 #endif /* SRC_INCLUDE_DEVICE_H_ */

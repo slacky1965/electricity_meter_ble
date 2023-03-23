@@ -28,7 +28,6 @@ static void init_default_config() {
     config.id = ID_CONFIG;
     config.flash_addr = BEGIN_USER_DATA;
     config.measurement_period = MEASUREMENT_PERIOD;
-    set_device_type(device_kaskad_1_mt);
     default_config = true;
 }
 

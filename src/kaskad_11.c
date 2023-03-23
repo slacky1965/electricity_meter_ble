@@ -11,11 +11,10 @@
 #define LEVEL_READ 0x02
 #define MIN_PKT_SIZE 0x06
 
-_attribute_data_retention_ static package_t request_pkt;
-_attribute_data_retention_ static package_t response_pkt;
-_attribute_data_retention_ static uint8_t   def_password[] = {0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30};
+static package_t request_pkt;
+static package_t response_pkt;
+static uint8_t   def_password[] = {0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30};
 _attribute_data_retention_ static uint8_t   phases3;
-_attribute_data_retention_ static uint8_t   month_release, year_release;
 
 
 _attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer) {
@@ -430,8 +429,8 @@ _attribute_ram_code_ void get_date_release_data_kaskad11() {
     if (send_command(&request_pkt)) {
         if (response_meter(cmd_open_channel) == PKT_OK) {
             pkt = (pkt_release_t*)&response_pkt;
-            month_release = pkt->month;
-            year_release = pkt->year;
+            release_month = pkt->month;
+            release_year = pkt->year;
             meter.date_release_len = sprintf((char*)meter.date_release, "%02u.%02u.%u", pkt->day, pkt->month, pkt->year+2000);
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
             printf("Date of release: %s\r\n", meter.date_release_len);

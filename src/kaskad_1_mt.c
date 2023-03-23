@@ -17,10 +17,10 @@
 #define STUFF_55    0x11
 #define STUFF_73    0x22
 
-_attribute_data_retention_ static package_t request_pkt;
-_attribute_data_retention_ static package_t response_pkt;
+static package_t request_pkt;
+static package_t response_pkt;
+static uint8_t   package_buff[PKT_BUFF_MAX_LEN];
 _attribute_data_retention_ static uint8_t   divisor;
-_attribute_data_retention_ static uint8_t   package_buff[PKT_BUFF_MAX_LEN];
 
 _attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
   // skip 73 55 header (and 55 footer is beyond checksum anyway)

@@ -8,8 +8,8 @@
 #include "app_uart.h"
 #include "app.h"
 
-_attribute_data_retention_ static package_t request_pkt;
-_attribute_data_retention_ static package_t response_pkt;
+static package_t request_pkt;
+static package_t response_pkt;
 
 _attribute_ram_code_ static uint16_t checksum(const uint8_t *src_buffer, uint8_t len) {
 

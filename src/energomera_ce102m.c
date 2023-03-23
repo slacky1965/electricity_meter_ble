@@ -14,7 +14,7 @@
 #define STX 0x02
 #define ETX 0x03
 
-_attribute_data_retention_ static uint8_t package_buff[PKT_BUFF_MAX_LEN];
+static uint8_t package_buff[PKT_BUFF_MAX_LEN];
 
 static const uint8_t cmd0[] = {0x2F, 0x3F, 0x21, 0x0D, 0x0A, 0x00};
 static const uint8_t cmd1[] = {SOH, 0x42, 0x30, ETX, 0x75, 0x00};

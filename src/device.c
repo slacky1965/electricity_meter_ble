@@ -6,13 +6,13 @@
 #include "app_uart.h"
 #include "cfg.h"
 
-_attribute_data_retention_ uint8_t  tariff_changed = true;
-_attribute_data_retention_ uint8_t  pva_changed = true;
 _attribute_data_retention_ meter_t  meter;
 _attribute_data_retention_ uint8_t  release_month;
 _attribute_data_retention_ uint8_t  release_year;
 _attribute_data_retention_ uint8_t  new_start = true;
-_attribute_data_retention_ pkt_error_t pkt_error_no;
+_attribute_data_retention_ uint8_t tariff_changed = true;
+_attribute_data_retention_ uint8_t pva_changed = true;
+pkt_error_t pkt_error_no;
 
 _attribute_ram_code_ uint16_t get_divisor(const uint8_t division_factor) {
 
@@ -52,13 +52,14 @@ _attribute_ram_code_ uint8_t set_device_type(device_type_t type) {
                 memcpy(&config.save_data.divisor, &divisor, sizeof(divisor_t));
                 write_config();
                 save = true;
+#if UART_PRINT_DEBUG_ENABLE
+            printf("New device type KACKAD-1-MT\r\n");
+#endif
             }
+//            meter.measure_meter = measure_meter_energomera_ce102;
             meter.measure_meter = measure_meter_kaskad1mt;
             meter.get_date_release_data = get_date_release_data_kaskad1mt;
             meter.get_serial_number_data = get_serial_number_data_kaskad1mt;
-#if UART_PRINT_DEBUG_ENABLE
-            printf("Device type KACKAD-1-MT\r\n");
-#endif
             break;
         case device_kaskad_11:
             if (config.save_data.device_type != device_kaskad_11) {
