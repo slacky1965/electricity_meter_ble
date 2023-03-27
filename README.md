@@ -41,19 +41,21 @@
 
 Отправляем настройки нажатием одноименных кнопок и все.
 
+<img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/images/config_html.jpg" alt="Web flasher"/>
+
 Тарифы, мощность, напряжение и сила тока в [WEB-конфигураторе](https://slacky1965.github.io/ble_utils/ElectricityMeterConfig.html) показаны в абсолютных значениях, как они хранятся в памяти.
+
+---
 
 **Собранное устройство**
 
-Собранного законченного устройства пока нет. Сделано и проверено все на макетке. Но все работает. Удачи.
+Плата изначально проектировалась под вилку ~220 вольт в качестве корпуса. Позде возникли накладки под длине устройства. В общем плата осталась без изменений, а вот корпус пришлось выполнить в двух вариантах. Собственно вариант 1 - в качестве корпуса вилка и вариант 2 - просто коробочка, заказанная на Алиэкспресс.
 
-<img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/images/config_html.jpg" alt="Web flasher"/>
+[Интсрукции по изготовлению готового устройства](https://github.com/slacky1965/electricity_meter_ble/tree/main/doc/device#electricity-meter-bluetooth-le-tlsr8253-ai-thinker-tb-04)
 
-<img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/images/optoport_maket.jpg" alt="maket1"/>
+---
 
-<img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/images/optoport_TB4kit.jpg" alt="maket2"/>
-
-<img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/images/kaskad-1-mt.jpg" alt="kackad-1-mt"/>
+Ну и последок скриншот из Home Assistant
 
 <img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/images/home_assistant.jpg" alt="home_assistant"/>
 
