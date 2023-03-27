@@ -1,5 +1,7 @@
 # Однофазный многотарифный счетчик Энергомера СЕ-102М
 
+<img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/electricity_meters/energomera_ce102m/102m_r5_front.jpg" alt="Energomera CE102M">
+
 ## Описание особенностей работы с этим счетчиком
 
 Протокол обмена на этот счетчик размещен на сайте Энергомеры, в [руководстве по эксплуатации](http://www.energomera.ru/documentations/product/ce102m_re.pdf)
