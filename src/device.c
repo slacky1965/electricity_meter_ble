@@ -48,15 +48,14 @@ _attribute_ram_code_ uint8_t set_device_type(device_type_t type) {
         case device_kaskad_1_mt:
             if (config.save_data.device_type != device_kaskad_1_mt) {
                 config.save_data.device_type = device_kaskad_1_mt;
-                divisor = 0x0a4f;   /* power 1000, voltage 0.1, amps 0.1, tariffs 10 */
+                divisor = 0x0a0f;   /* power 1000, voltage 0.1, amps 1, tariffs 10 */
                 memcpy(&config.save_data.divisor, &divisor, sizeof(divisor_t));
                 write_config();
                 save = true;
 #if UART_PRINT_DEBUG_ENABLE
-            printf("New device type KACKAD-1-MT\r\n");
+                printf("New device type KACKAD-1-MT\r\n");
 #endif
             }
-//            meter.measure_meter = measure_meter_energomera_ce102;
             meter.measure_meter = measure_meter_kaskad1mt;
             meter.get_date_release_data = get_date_release_data_kaskad1mt;
             meter.get_serial_number_data = get_serial_number_data_kaskad1mt;
@@ -67,13 +66,13 @@ _attribute_ram_code_ uint8_t set_device_type(device_type_t type) {
                 memset(&config.save_data.divisor, 0, sizeof(divisor_t));
                 write_config();
                 save = true;
+#if UART_PRINT_DEBUG_ENABLE
+                printf("New device type KACKAD-11\r\n");
+#endif
             }
             meter.measure_meter = measure_meter_kaskad11;
             meter.get_date_release_data = get_date_release_data_kaskad11;
             meter.get_serial_number_data = get_serial_number_data_kaskad11;
-#if UART_PRINT_DEBUG_ENABLE
-            printf("Device type KACKAD-11\r\n");
-#endif
             break;
         case device_mercury_206:
             if (config.save_data.device_type != device_mercury_206) {
@@ -81,13 +80,13 @@ _attribute_ram_code_ uint8_t set_device_type(device_type_t type) {
                 memset(&config.save_data.divisor, 0, sizeof(divisor_t));
                 write_config();
                 save = true;
+#if UART_PRINT_DEBUG_ENABLE
+                printf("New device type Mercury-206\r\n");
+#endif
             }
             meter.measure_meter = measure_meter_mercury206;
             meter.get_date_release_data = get_date_release_data_mercury206;
             meter.get_serial_number_data = get_serial_number_data_mercury206;
-#if UART_PRINT_DEBUG_ENABLE
-            printf("Device type Mercury-206\r\n");
-#endif
             break;
         case device_energomera_ce102m:
             if (config.save_data.device_type != device_energomera_ce102m) {
@@ -96,17 +95,17 @@ _attribute_ram_code_ uint8_t set_device_type(device_type_t type) {
                 memset(&config.save_data.divisor, 0, sizeof(divisor_t));
                 write_config();
                 save = true;
+#if UART_PRINT_DEBUG_ENABLE
+                printf("New device type Energomera CE-102M\r\n");
+#endif
             }
             meter.measure_meter = measure_meter_energomera_ce102m;
             meter.get_date_release_data = get_date_release_data_energomera_ce102m;
             meter.get_serial_number_data = get_serial_number_data_energomera_ce102m;
-#if UART_PRINT_DEBUG_ENABLE
-            printf("Device type Energomera CE-102M\r\n");
-#endif
             break;
         default:
             config.save_data.device_type = device_kaskad_1_mt;
-            divisor = 0x0a4f;   /* power 1000, voltage 0.1, amps 0.1, tariffs 10 */
+            divisor = 0x0a0f;   /* power 1000, voltage 0.1, amps 1, tariffs 10 */
             memcpy(&config.save_data.divisor, &divisor, sizeof(divisor_t));
             meter.measure_meter = measure_meter_kaskad1mt;
             meter.get_date_release_data = get_date_release_data_kaskad1mt;
