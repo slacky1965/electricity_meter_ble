@@ -44,5 +44,5 @@
 
 <img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/device/version_1/images/device_install.jpg" alt="Device install">
 
-Питание берется через розетку на DIN-рейку через зарядку от мобильного телефона.
+Питание берется с розетки на DIN-рейку через зарядку от мобильного телефона.
 
