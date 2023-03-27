@@ -38,4 +38,6 @@
 
 Осталось приклеить к экрану магнит. Я применил вот такой - [Неодимовый магнит кольцо 20х16х1.25 мм](https://mirmagnitov.ru/product/nyeodimovyy-magnit-kol-tso-20kh16kh1-25-mm/)
 
+<img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/device/version_1/images/fork_screen_magnet.jpg" alt="Fork screen magnet">
+
 
