@@ -11,4 +11,4 @@
 Я напишу про оба корпуса.
 
 > 1. [Вариант первый (вилка)](https://github.com/slacky1965/electricity_meter_ble/tree/main/doc/device/version_1#electricity-meter-bluetooth-le-tlsr8253-ai-thinker-tb-04)
-> 2. Вариант второй (коробочка)
+> 2. [Вариант второй (коробочка)](https://github.com/slacky1965/electricity_meter_ble/tree/main/doc/device/version_2#electricity-meter-bluetooth-le-tlsr8253-ai-thinker-tb-04)
