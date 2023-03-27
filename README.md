@@ -12,8 +12,8 @@
 
 * Рассчитано на взаимодействие с однофазными многотарифными электросчетчиками:
 
-> 1. КАСКАД-1-МТ
-> 2. Энергомера СЕ-102М
+> 1. [КАСКАД-1-МТ](https://github.com/slacky1965/electricity_meter_ble/tree/main/doc/electricity_meters/kaskad_1_mt#%D0%BE%D0%B4%D0%BD%D0%BE%D1%84%D0%B0%D0%B7%D0%BD%D1%8B%D0%B9-%D0%BC%D0%BD%D0%BE%D0%B3%D0%BE%D1%82%D0%B0%D1%80%D0%B8%D1%84%D0%BD%D1%8B%D0%B9-%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D0%BA%D0%B0%D1%81%D0%BA%D0%B0%D0%B4-1-%D0%BC%D1%82)
+> 2. [Энергомера СЕ-102М](https://github.com/slacky1965/electricity_meter_ble/tree/main/doc/electricity_meters/energomera_ce102m#%D0%BE%D0%B4%D0%BD%D0%BE%D1%84%D0%B0%D0%B7%D0%BD%D1%8B%D0%B9-%D0%BC%D0%BD%D0%BE%D0%B3%D0%BE%D1%82%D0%B0%D1%80%D0%B8%D1%84%D0%BD%D1%8B%D0%B9-%D1%81%D1%87%D0%B5%D1%82%D1%87%D0%B8%D0%BA-%D1%8D%D0%BD%D0%B5%D1%80%D0%B3%D0%BE%D0%BC%D0%B5%D1%80%D0%B0-%D1%81%D0%B5-102%D0%BC)
 
 В процессе работа над такими счетчиками, как Меркурий-206, КАСКАД-11, Энергомера СЕ-102.
 
