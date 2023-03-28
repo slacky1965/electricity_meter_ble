@@ -38,7 +38,7 @@
 
 **Настройка**
 
-Заливаем прошивку с помощью [github.com/pvvx/TLSRPGM](https://github.com/pvvx/TLSRPGM). Запускаем [WEB-конфигуратор](https://slacky1965.github.io/ble_utils/ElectricityMeterConfig.html), соединяемся с модулем, вводим 
+Заливаем прошивку с помощью [github.com/pvvx/TLSRPGM](https://github.com/pvvx/TLSRPGM). Запускаем [WEB-конфигуратор](https://slacky1965.github.io/ble_utils/ElectricityMeterConfig.html), соединяемся с модулем, далее
 
 > 1. Выбираем нужный счетчик из предложенных.
 > 2. Устанавливаем период опроса (в минутах, от 1 до 255).
