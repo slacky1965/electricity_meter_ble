@@ -11,8 +11,8 @@
 
 _attribute_data_retention_ log_notify_t log_notify;
 _attribute_data_retention_ uint8_t send_log_enable;
-_attribute_data_retention_ uint8_t log_buff[LOG_BUFF_SIZE];
-_attribute_data_retention_ uint16_t log_head, log_tail;
+_attribute_data_retention_ static uint16_t log_head, log_tail;
+static uint8_t log_buff[LOG_BUFF_SIZE];
 
 _attribute_ram_code_ uint8_t log_available() {
     if (log_head != log_tail) {
