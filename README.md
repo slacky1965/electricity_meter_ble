@@ -50,7 +50,7 @@
 
 <img src="https://raw.githubusercontent.com/slacky1965/electricity_meter_ble/main/doc/images/config_html.jpg" alt="Web flasher"/>
 
-Тарифы, мощность, напряжение и сила тока в [WEB-конфигураторе](https://slacky1965.github.io/ble_utils/ElectricityMeterConfig.html) показаны в абсолютных значениях, как они хранятся в памяти.
+Тарифы, мощность, напряжение и сила тока в выводе лога и в [WEB-конфигураторе](https://slacky1965.github.io/ble_utils/ElectricityMeterConfig.html) показаны в абсолютных значениях, как они хранятся в памяти.
 
 ---
 
