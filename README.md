@@ -13,9 +13,10 @@
 * Рассчитано на взаимодействие с однофазными многотарифными электросчетчиками:
 
 > 1. [КАСКАД-1-МТ](https://github.com/slacky1965/electricity_meter_ble/tree/main/doc/electricity_meters/kaskad_1_mt#readme)
-> 2. [Энергомера СЕ-102М](https://github.com/slacky1965/electricity_meter_ble/tree/main/doc/electricity_meters/energomera_ce102m#readme)
+> 2. [КАСКАД-11-С1](https://github.com/slacky1965/electricity_meter_ble/tree/main/doc/electricity_meters/kaskad_11_c1#readme)
+> 3. [Энергомера СЕ-102М](https://github.com/slacky1965/electricity_meter_ble/tree/main/doc/electricity_meters/energomera_ce102m#readme)
 
-В процессе работа над такими счетчиками, как Меркурий-206, КАСКАД-11, Энергомера СЕ-102.
+В процессе работа над такими счетчиками, как Меркурий-206, Энергомера СЕ-102.
 
 * Модуль посылает команды электросчетчику и принимает ответы от него. В настоящий момент устройство может прочитать
 
