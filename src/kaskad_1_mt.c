@@ -20,7 +20,6 @@
 static package_t request_pkt;
 static package_t response_pkt;
 static uint8_t   package_buff[PKT_BUFF_MAX_LEN];
-//_attribute_data_retention_ static uint8_t   divisor;
 
 _attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
   // skip 73 55 header (and 55 footer is beyond checksum anyway)
@@ -304,6 +303,10 @@ _attribute_ram_code_ static package_t *get_pkt_data(command_t command) {
 
 _attribute_ram_code_ static uint8_t ping_start_data() {
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start of the ping command\r\n");
+#endif
+
     package_t *pkt = get_pkt_data(cmd_open_channel);
 
     if (pkt) {
@@ -314,6 +317,10 @@ _attribute_ram_code_ static uint8_t ping_start_data() {
 }
 
 _attribute_ram_code_ static void get_tariffs_data() {
+
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive tariffs\r\n");
+#endif
 
     package_t *pkt = get_pkt_data(cmd_tariffs_data);
 
@@ -358,6 +365,10 @@ _attribute_ram_code_ static void get_amps_data() {
 
     uint32_t amps;
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive current\r\n");
+#endif
+
     package_t *pkt = get_pkt_data(cmd_amps_data);
 
     if (pkt) {
@@ -392,6 +403,10 @@ _attribute_ram_code_ static void get_amps_data() {
 
 _attribute_ram_code_ static void get_voltage_data() {
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive voltage\r\n");
+#endif
+
     package_t *pkt = get_pkt_data(cmd_volts_data);
 
     if (pkt) {
@@ -415,7 +430,12 @@ _attribute_ram_code_ static void get_power_data() {
 
     uint32_t         power;
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive power\r\n");
+#endif
+
     package_t *pkt = get_pkt_data(cmd_power_data);
+
 
     if (pkt) {
 
@@ -436,6 +456,10 @@ _attribute_ram_code_ static void get_power_data() {
 }
 
 _attribute_ram_code_ void get_serial_number_data_kaskad1mt() {
+
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive serial number\r\n");
+#endif
 
     package_t *pkt = get_pkt_data(cmd_serial_number);
 
@@ -459,6 +483,10 @@ _attribute_ram_code_ void get_serial_number_data_kaskad1mt() {
 
 _attribute_ram_code_ void get_date_release_data_kaskad1mt() {
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive date of release\r\n");
+#endif
+
     package_t *pkt = get_pkt_data(cmd_date_release);
 
     if (pkt) {
@@ -480,23 +508,11 @@ _attribute_ram_code_ void get_date_release_data_kaskad1mt() {
 
 }
 
-//_attribute_ram_code_ static void get_configure_data() {
-//
-//    package_t *pkt = get_pkt_data(cmd_read_configure);
-//
-//    if (pkt) {
-//
-//        pkt_read_cfg_t *read_cfg = (pkt_read_cfg_t*)pkt->data;
-//
-//#if UART_PRINT_DEBUG_ENABLE
-//        printf("divisor: %u\r\n", get_divisor(read_cfg->divisor));
-//#endif
-//
-//        divisor = read_cfg->divisor;
-//    }
-//}
-
 _attribute_ram_code_ static void get_resbat_data() {
+
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive resource of battery\r\n");
+#endif
 
     package_t *pkt = get_pkt_data(cmd_resource_battery);
 
@@ -539,13 +555,12 @@ _attribute_ram_code_ void measure_meter_kaskad1mt() {
 
     if (ping_start_data()) {           /* ping to device       */
         if (new_start) {               /* after reset          */
-//            get_configure_data();      /* get divisor          */
             get_serial_number_data_kaskad1mt();
             get_date_release_data_kaskad1mt();
             new_start = false;
         }
-        get_resbat_data();             /* get resource battery */
         get_tariffs_data();            /* get 3 tariffs        */
+        get_resbat_data();             /* get resource battery */
         get_voltage_data();            /* get voltage net ~220 */
         get_power_data();              /* get power            */
         get_amps_data();               /* get amps             */
