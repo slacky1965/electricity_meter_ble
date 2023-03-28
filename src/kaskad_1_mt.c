@@ -20,7 +20,7 @@
 static package_t request_pkt;
 static package_t response_pkt;
 static uint8_t   package_buff[PKT_BUFF_MAX_LEN];
-_attribute_data_retention_ static uint8_t   divisor;
+//_attribute_data_retention_ static uint8_t   divisor;
 
 _attribute_ram_code_ static uint8_t checksum(const uint8_t *src_buffer, uint8_t len) {
   // skip 73 55 header (and 55 footer is beyond checksum anyway)
@@ -286,38 +286,7 @@ _attribute_ram_code_ static pkt_error_t response_meter(command_t command) {
     }
 
 #if UART_PRINT_DEBUG_ENABLE
-    switch (pkt_error_no) {
-        case PKT_ERR_TIMEOUT:
-            printf("Response timed out\r\n");
-            break;
-        case PKT_ERR_RESPONSE:
-            printf("Response error: 0x%02x\r\n", err);
-            break;
-        case PKT_ERR_UNKNOWN_FORMAT:
-        case PKT_ERR_NO_PKT:
-            printf("Unknown response format\r\n");
-            break;
-        case PKT_ERR_DIFFERENT_COMMAND:
-            printf("Request and response command are different\r\n");
-            break;
-        case PKT_ERR_INCOMPLETE:
-            printf("Not a complete response\r\n");
-            break;
-        case PKT_ERR_UNSTUFFING:
-            printf("Wrong unstuffing\r\n");
-            break;
-        case PKT_ERR_ADDRESS:
-            printf("Invalid device address\r\n");
-            break;
-        case PKT_ERR_CRC:
-            printf("Wrong CRC\r\n");
-            break;
-        case PKT_ERR_UART:
-            printf("UART is busy\r\n");
-            break;
-        default:
-            break;
-    }
+    if (pkt_error_no != PKT_OK) print_error(pkt_error_no);
 #endif
 
     return pkt_error_no;
@@ -377,12 +346,9 @@ _attribute_ram_code_ static void get_tariffs_data() {
         }
 
 #if UART_PRINT_DEBUG_ENABLE
-        printf("tariff1: %u,%u\r\n", meter.tariff_1 / get_divisor(divisor),
-                                     meter.tariff_1 % get_divisor(divisor));
-        printf("tariff2: %u,%u\r\n", meter.tariff_2 / get_divisor(divisor),
-                                     meter.tariff_2 % get_divisor(divisor));
-        printf("tariff3: %u,%u\r\n", meter.tariff_3 / get_divisor(divisor),
-                                     meter.tariff_3 % get_divisor(divisor));
+        printf("tariff1: %u\r\n", meter.tariff_1);
+        printf("tariff2: %u\r\n", meter.tariff_2);
+        printf("tariff3: %u\r\n", meter.tariff_3);
 #endif
 
     }
@@ -418,7 +384,7 @@ _attribute_ram_code_ static void get_amps_data() {
         }
 
 #if UART_PRINT_DEBUG_ENABLE
-        printf("phase: %u, amps: %u,%02u\r\n", amps_response->phase_num, amps/1000, amps%1000);
+        printf("phase: %u, amps: %u\r\n", amps_response->phase_num, amps);
 #endif
 
     }
@@ -439,9 +405,7 @@ _attribute_ram_code_ static void get_voltage_data() {
         }
 
 #if UART_PRINT_DEBUG_ENABLE
-        printf("phase: %u, volts: %u,%02u\r\n", volts_response->phase_num,
-                                                volts_response->volts / get_divisor(divisor),
-                                                volts_response->volts % get_divisor(divisor));
+        printf("phase: %u, volts: %u\r\n", volts_response->phase_num, volts_response->volts);
 #endif
 
     }
@@ -466,7 +430,7 @@ _attribute_ram_code_ static void get_power_data() {
         }
 
 #if UART_PRINT_DEBUG_ENABLE
-        printf("power: %u,%02u\r\n", power / get_divisor(divisor), power % get_divisor(divisor));
+        printf("power: %u\r\n", power);
 #endif
     }
 }
@@ -516,21 +480,21 @@ _attribute_ram_code_ void get_date_release_data_kaskad1mt() {
 
 }
 
-_attribute_ram_code_ static void get_configure_data() {
-
-    package_t *pkt = get_pkt_data(cmd_read_configure);
-
-    if (pkt) {
-
-        pkt_read_cfg_t *read_cfg = (pkt_read_cfg_t*)pkt->data;
-
-#if UART_PRINT_DEBUG_ENABLE
-        printf("divisor: %u\r\n", get_divisor(read_cfg->divisor));
-#endif
-
-        divisor = read_cfg->divisor;
-    }
-}
+//_attribute_ram_code_ static void get_configure_data() {
+//
+//    package_t *pkt = get_pkt_data(cmd_read_configure);
+//
+//    if (pkt) {
+//
+//        pkt_read_cfg_t *read_cfg = (pkt_read_cfg_t*)pkt->data;
+//
+//#if UART_PRINT_DEBUG_ENABLE
+//        printf("divisor: %u\r\n", get_divisor(read_cfg->divisor));
+//#endif
+//
+//        divisor = read_cfg->divisor;
+//    }
+//}
 
 _attribute_ram_code_ static void get_resbat_data() {
 
@@ -575,7 +539,7 @@ _attribute_ram_code_ void measure_meter_kaskad1mt() {
 
     if (ping_start_data()) {           /* ping to device       */
         if (new_start) {               /* after reset          */
-            get_configure_data();      /* get divisor          */
+//            get_configure_data();      /* get divisor          */
             get_serial_number_data_kaskad1mt();
             get_date_release_data_kaskad1mt();
             new_start = false;
