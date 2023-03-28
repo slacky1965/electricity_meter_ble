@@ -63,7 +63,7 @@ _attribute_ram_code_ uint8_t set_device_type(device_type_t type) {
         case device_kaskad_11:
             if (config.save_data.device_type != device_kaskad_11) {
                 config.save_data.device_type = device_kaskad_11;
-                divisor = 0x0a0f;   /* power 1000, voltage 0.1, amps 1, tariffs 10 */
+                divisor = 0x0a05;   /* power 10, voltage 1, amps 1, tariffs 10 */
                 memcpy(&config.save_data.divisor, &divisor, sizeof(divisor_t));
                 write_config();
                 save = true;

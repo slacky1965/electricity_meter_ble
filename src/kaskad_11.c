@@ -43,14 +43,14 @@ _attribute_ram_code_ static uint8_t send_command(package_t *pkt) {
         } else {
             len = 0;
         }
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("Attempt to send data to uart: %u\r\n", attempt+1);
 #endif
         sleep_ms(250);
     }
 
     if (len == 0) {
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
         printf("Can't send a request pkt\r\n");
 #endif
     } else {
@@ -152,39 +152,8 @@ _attribute_ram_code_ static pkt_error_t response_meter(uint8_t command) {
         }
     }
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-    switch (pkt_error_no) {
-        case PKT_ERR_TIMEOUT:
-            printf("Response timed out\r\n");
-            break;
-        case PKT_ERR_RESPONSE:
-            printf("Response error\r\n");
-            break;
-        case PKT_ERR_UNKNOWN_FORMAT:
-        case PKT_ERR_NO_PKT:
-            printf("Unknown response format\r\n");
-            break;
-        case PKT_ERR_DIFFERENT_COMMAND:
-            printf("Request and response command are different\r\n");
-            break;
-        case PKT_ERR_INCOMPLETE:
-            printf("Not a complete response\r\n");
-            break;
-        case PKT_ERR_UNSTUFFING:
-            printf("Wrong unstuffing\r\n");
-            break;
-        case PKT_ERR_ADDRESS:
-            printf("Invalid device address\r\n");
-            break;
-        case PKT_ERR_CRC:
-            printf("Wrong CRC\r\n");
-            break;
-        case PKT_ERR_UART:
-            printf("UART is busy\r\n");
-            break;
-        default:
-            break;
-    }
+#if UART_PRINT_DEBUG_ENABLE
+    if (pkt_error_no != PKT_OK) print_error(pkt_error_no);
 #endif
 
     if (pkt_error_no != PKT_OK && get_queue_len_buff_uart()) {
@@ -209,6 +178,10 @@ _attribute_ram_code_ static uint8_t open_channel() {
 
     uint8_t pos = 0;
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start of the open channel command\r\n");
+#endif
+
     set_header(cmd_open_channel);
 
     request_pkt.data[pos++] = LEVEL_READ;
@@ -229,6 +202,10 @@ _attribute_ram_code_ static uint8_t open_channel() {
 }
 
 _attribute_ram_code_ static void close_channel() {
+
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start of the close channel command\r\n");
+#endif
 
     set_header(cmd_close_channel);
 
@@ -252,6 +229,10 @@ _attribute_ram_code_ static void set_tariff_num(uint8_t tariff_num) {
 
 _attribute_ram_code_ static void get_tariffs_data() {
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive tariffs\r\n");
+#endif
+
     for (uint8_t tariff_num = 1; tariff_num < 4; tariff_num++) {
         set_tariff_num(tariff_num);
         if (send_command(&request_pkt)) {
@@ -261,36 +242,33 @@ _attribute_ram_code_ static void get_tariffs_data() {
 
                 switch (tariff_num) {
                     case 1:
-                        if (pkt_tariff->value < meter.tariff_1) {
+                        if (meter.tariff_1 < pkt_tariff->value) {
                             meter.tariff_1 = pkt_tariff->value;
                             tariff_changed = true;
                             tariff1_notify = NOTIFY_MAX;
                         }
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-                        printf("tariff1: %u,%u\r\n", meter.tariff_1 / get_divisor(0),
-                                                     meter.tariff_1 % get_divisor(0));
+#if UART_PRINT_DEBUG_ENABLE
+                        printf("tariff1: %u\r\n", meter.tariff_1);
 #endif
                         break;
                     case 2:
-                        if (pkt_tariff->value < meter.tariff_2) {
+                        if (meter.tariff_2 < pkt_tariff->value) {
                             meter.tariff_2 = pkt_tariff->value;
                             tariff_changed = true;
                             tariff1_notify = NOTIFY_MAX;
                         }
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-                        printf("tariff2: %u,%u\r\n", meter.tariff_2 / get_divisor(0),
-                                                     meter.tariff_2 % get_divisor(0));
+#if UART_PRINT_DEBUG_ENABLE
+                        printf("tariff2: %u\r\n", meter.tariff_2);
 #endif
                         break;
                     case 3:
-                        if (pkt_tariff->value < meter.tariff_3) {
+                        if (meter.tariff_3 < pkt_tariff->value) {
                             meter.tariff_3 = pkt_tariff->value;
                             tariff_changed = true;
                             tariff1_notify = NOTIFY_MAX;
                         }
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-                        printf("tariff3: %u,%u\r\n", meter.tariff_3 / get_divisor(0),
-                                                     meter.tariff_3 % get_divisor(0));
+#if UART_PRINT_DEBUG_ENABLE
+                        printf("tariff3: %u\r\n", meter.tariff_3);
 #endif
                         break;
                     default:
@@ -315,6 +293,10 @@ _attribute_ram_code_ static void set_net_parameters(uint8_t param) {
 
 _attribute_ram_code_ static void get_voltage_data() {
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive voltage\r\n");
+#endif
+
     set_net_parameters(net_voltage);
 
     if (send_command(&request_pkt)) {
@@ -325,8 +307,8 @@ _attribute_ram_code_ static void get_voltage_data() {
                 pva_changed = true;
                 voltage_notify = NOTIFY_MAX;
             }
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            printf("volts: %u,%02u\r\n", pkt_voltage->voltage / get_divisor(0), pkt_voltage->voltage % get_divisor(0));
+#if UART_PRINT_DEBUG_ENABLE
+            printf("volts: %u\r\n", pkt_voltage->voltage);
 #endif
 
         }
@@ -334,6 +316,10 @@ _attribute_ram_code_ static void get_voltage_data() {
 }
 
 _attribute_ram_code_ static void get_power_data() {
+
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive power\r\n");
+#endif
 
     set_net_parameters(net_power);
 
@@ -347,8 +333,8 @@ _attribute_ram_code_ static void get_power_data() {
                 power_notify = NOTIFY_MAX;
             }
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            printf("power: %u,%02u\r\n", power / get_divisor(0), power % get_divisor(0));
+#if UART_PRINT_DEBUG_ENABLE
+            printf("power: %u\r\n", power);
 #endif
         }
     }
@@ -356,6 +342,10 @@ _attribute_ram_code_ static void get_power_data() {
 
 
 _attribute_ram_code_ static void get_amps_data() {
+
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive current\r\n");
+#endif
 
     set_net_parameters(net_amps);
 
@@ -374,8 +364,8 @@ _attribute_ram_code_ static void get_amps_data() {
                     ampere_notify = NOTIFY_MAX;
                 }
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-                printf("amps: %u,%02u\r\n", pkt_amps->amps/1000, pkt_amps->amps%1000);
+#if UART_PRINT_DEBUG_ENABLE
+                printf("amps: %u\r\n", pkt_amps->amps);
 #endif
             }
         }
@@ -395,6 +385,12 @@ _attribute_ram_code_ static void get_resbat_data() {
         uint64_t rsv    :28;
     };
 
+    uint8_t lifetime = RESOURCE_BATTERY, worktime;
+
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive resource of battery\r\n");
+#endif
+
     set_header(cmd_datetime_device);
 
     request_pkt.len++;
@@ -407,9 +403,22 @@ _attribute_ram_code_ static void get_resbat_data() {
 
             struct datetime *dt = (struct datetime*)pkt_datetime->datetime;
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            printf("Device date: %02u.%02u.20%02u\r\n", dt->day, dt->month, dt->year);
+            worktime = lifetime - ((dt->year * 12 + dt->month) - (release_year * 12 + release_month));
+
+#if UART_PRINT_DEBUG_ENABLE
+            printf("Resource battery: %u.%u\r\n", (worktime*100)/lifetime, ((worktime*100)%lifetime)*100/lifetime);
 #endif
+        }
+
+        uint8_t battery_level = (worktime*100)/lifetime;
+
+        if (((worktime*100)%lifetime) >= (lifetime/2)) {
+            battery_level++;
+        }
+
+        if (meter.battery_level != battery_level) {
+            meter.battery_level = battery_level;
+            pva_changed = true;
         }
     }
 
@@ -420,6 +429,10 @@ _attribute_ram_code_ void get_date_release_data_kaskad11() {
 
     pkt_release_t *pkt;
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive date of release\r\n");
+#endif
+
     set_header(cmd_date_release);
 
     request_pkt.len++;
@@ -427,19 +440,23 @@ _attribute_ram_code_ void get_date_release_data_kaskad11() {
     request_pkt.data[0] = crc;
 
     if (send_command(&request_pkt)) {
-        if (response_meter(cmd_open_channel) == PKT_OK) {
+        if (response_meter(cmd_date_release) == PKT_OK) {
             pkt = (pkt_release_t*)&response_pkt;
             release_month = pkt->month;
             release_year = pkt->year;
             meter.date_release_len = sprintf((char*)meter.date_release, "%02u.%02u.%u", pkt->day, pkt->month, pkt->year+2000);
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            printf("Date of release: %s\r\n", meter.date_release_len);
+#if UART_PRINT_DEBUG_ENABLE
+            printf("Date of release: %s\r\n", meter.date_release);
 #endif
         }
     }
 }
 
 _attribute_ram_code_ void get_serial_number_data_kaskad11() {
+
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive serial number\r\n");
+#endif
 
     set_header(cmd_serial_number);
 
@@ -451,7 +468,7 @@ _attribute_ram_code_ void get_serial_number_data_kaskad11() {
         if (response_meter(cmd_serial_number) == PKT_OK) {
             meter.serial_number_len = response_pkt.len - MIN_PKT_SIZE;
             memcpy(meter.serial_number, response_pkt.data, meter.serial_number_len);
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
             printf("Serial Number: %s\r\n", meter.serial_number);
 #endif
         }
@@ -471,7 +488,7 @@ _attribute_ram_code_ void measure_meter_kaskad11() {
         get_amps_data();            /* get amps and check phases num */
 
         if (phases3) {
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+#if UART_PRINT_DEBUG_ENABLE
             printf("Sorry, three-phase meter!\r\n");
 #endif
         } else {

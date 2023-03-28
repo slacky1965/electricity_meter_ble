@@ -1,6 +1,8 @@
 #ifndef SRC_INCLUDE_KASKAD_11_H_
 #define SRC_INCLUDE_KASKAD_11_H_
 
+#define RESOURCE_BATTERY    120     /* in month */
+
 typedef enum _command_t {
     cmd_open_channel    = 0x02,
     cmd_close_channel   = 0x03,
@@ -15,7 +17,7 @@ typedef enum _command_t {
 typedef enum _net_parameters_t {
     net_voltage = 0,
     net_amps    = 1,
-    net_power   = 3
+    net_power   = 5
 } net_parameters_t;
 
 typedef struct __attribute__((packed)) _package_t {
