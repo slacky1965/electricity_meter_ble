@@ -63,7 +63,8 @@ _attribute_ram_code_ uint8_t set_device_type(device_type_t type) {
         case device_kaskad_11:
             if (config.save_data.device_type != device_kaskad_11) {
                 config.save_data.device_type = device_kaskad_11;
-                memset(&config.save_data.divisor, 0, sizeof(divisor_t));
+                divisor = 0x0a0f;   /* power 1000, voltage 0.1, amps 1, tariffs 10 */
+                memcpy(&config.save_data.divisor, &divisor, sizeof(divisor_t));
                 write_config();
                 save = true;
 #if UART_PRINT_DEBUG_ENABLE
