@@ -63,7 +63,7 @@ _attribute_ram_code_ void set_log_str() {
     memset(log_notify.str, 0, LOG_STR_SIZE);
     uint16_t len = get_log_queue_len();
 
-    if (len > LOG_STR_SIZE) {
+    if (len >= LOG_STR_SIZE) {
         len = LOG_STR_SIZE-1;
     }
 
