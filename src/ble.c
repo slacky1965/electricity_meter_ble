@@ -280,74 +280,86 @@ void ev_adv_timeout(uint8_t e, uint8_t *p, int n) {
 #endif
 }
 
+_attribute_ram_code_ static void set_adv_tariffs()  {
+
+    uint32_t tariff;
+
+    adv_tariff_data.tariff.pid++;
+
+    if (config.save_data.divisor.tariffs_sign) {
+        tariff = meter.tariff_1 * get_divisor(config.save_data.divisor.tariffs_divisor);
+        from32to24(adv_tariff_data.tariff.tariff_1, tariff);
+        tariff = meter.tariff_2 * get_divisor(config.save_data.divisor.tariffs_divisor);
+        from32to24(adv_tariff_data.tariff.tariff_2, tariff);
+        tariff = meter.tariff_3 * get_divisor(config.save_data.divisor.tariffs_divisor);
+        from32to24(adv_tariff_data.tariff.tariff_3, tariff);
+    } else {
+        tariff = meter.tariff_1 / get_divisor(config.save_data.divisor.tariffs_divisor);
+        from32to24(adv_tariff_data.tariff.tariff_1, tariff);
+        tariff = meter.tariff_2 / get_divisor(config.save_data.divisor.tariffs_divisor);
+        from32to24(adv_tariff_data.tariff.tariff_2, tariff);
+        tariff = meter.tariff_3 / get_divisor(config.save_data.divisor.tariffs_divisor);
+        from32to24(adv_tariff_data.tariff.tariff_3, tariff);
+    }
+
+    if (config.save_data.encrypted) {
+        bthome_encrypt_tariff_data_beacon();
+    }
+}
+
+_attribute_ram_code_ static void set_adv_pva()  {
+
+    uint32_t power;
+
+    adv_pva_data.pva.pid++;
+
+    if (config.save_data.divisor.power_sign) {
+        power = meter.power * get_divisor(config.save_data.divisor.power_divisor);
+    } else {
+        power = meter.power / get_divisor(config.save_data.divisor.power_divisor);
+    }
+    from32to24(adv_pva_data.pva.power, power);
+
+    uint16_t amps_volts;
+    if (config.save_data.divisor.voltage_sign) {
+        amps_volts = meter.voltage * get_divisor(config.save_data.divisor.voltage_divisor);
+    } else {
+        amps_volts = meter.voltage / get_divisor(config.save_data.divisor.voltage_divisor);
+    }
+    adv_pva_data.pva.voltage220 = amps_volts;
+
+    if (config.save_data.divisor.current_sign) {
+        amps_volts = meter.amps * get_divisor(config.save_data.divisor.current_divisor);
+    } else {
+        amps_volts = meter.amps / get_divisor(config.save_data.divisor.current_divisor);
+    }
+    adv_pva_data.pva.amps = amps_volts;
+
+    adv_pva_data.pva.battery_level = meter.battery_level;
+
+//            adv_pva_data.pva.voltage3_3 = battery_mv;
+
+    if (config.save_data.encrypted) {
+        bthome_encrypt_pva_data_beacon();
+    }
+}
+
 _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
     (void) p;
     if (adv_counter & 1) {
         if (pva_changed) {
             pva_changed = false;
-            adv_pva_data.pva.pid++;
-
-            uint32_t power;
-            if (config.save_data.divisor.power_sign) {
-                power = meter.power * get_divisor(config.save_data.divisor.power_divisor);
-            } else {
-                power = meter.power / get_divisor(config.save_data.divisor.power_divisor);
-            }
-            from32to24(adv_pva_data.pva.power, power);
-
-            uint16_t amps_volts;
-            if (config.save_data.divisor.voltage_sign) {
-                amps_volts = meter.voltage * get_divisor(config.save_data.divisor.voltage_divisor);
-            } else {
-                amps_volts = meter.voltage / get_divisor(config.save_data.divisor.voltage_divisor);
-            }
-            adv_pva_data.pva.voltage220 = amps_volts;
-
-            adv_pva_data.pva.battery_level = meter.battery_level;
-
-            if (config.save_data.divisor.current_sign) {
-                amps_volts = meter.amps * get_divisor(config.save_data.divisor.current_divisor);
-            } else {
-                amps_volts = meter.amps / get_divisor(config.save_data.divisor.current_divisor);
-            }
-            adv_pva_data.pva.amps = amps_volts;
-
-//            adv_pva_data.pva.voltage3_3 = battery_mv;
-
-            if (config.save_data.encrypted) {
-                bthome_encrypt_pva_data_beacon();
-            }
+            set_adv_pva();
         }
         if (config.save_data.encrypted) {
-            bls_ll_setAdvData((uint8_t*)&adv_crypt_pva_data, sizeof(adv_crypt_power_voltage_amps_t));
+            bls_ll_setAdvData((uint8_t*) &adv_crypt_pva_data, sizeof(adv_crypt_power_voltage_amps_t));
         } else {
-            bls_ll_setAdvData((uint8_t*)&adv_pva_data, sizeof(adv_power_voltage_amps_t));
+            bls_ll_setAdvData((uint8_t*) &adv_pva_data, sizeof(adv_power_voltage_amps_t));
         }
     } else {
         if (tariff_changed) {
             tariff_changed = false;
-            adv_tariff_data.tariff.pid++;
-
-            uint32_t tariff;
-            if (config.save_data.divisor.tariffs_sign) {
-                tariff = meter.tariff_1 * get_divisor(config.save_data.divisor.tariffs_divisor);
-                from32to24(adv_tariff_data.tariff.tariff_1, tariff);
-                tariff = meter.tariff_2 * get_divisor(config.save_data.divisor.tariffs_divisor);
-                from32to24(adv_tariff_data.tariff.tariff_2, tariff);
-                tariff = meter.tariff_3 * get_divisor(config.save_data.divisor.tariffs_divisor);
-                from32to24(adv_tariff_data.tariff.tariff_3, tariff);
-            } else {
-                tariff = meter.tariff_1 / get_divisor(config.save_data.divisor.tariffs_divisor);
-                from32to24(adv_tariff_data.tariff.tariff_1, tariff);
-                tariff = meter.tariff_2 / get_divisor(config.save_data.divisor.tariffs_divisor);
-                from32to24(adv_tariff_data.tariff.tariff_2, tariff);
-                tariff = meter.tariff_3 / get_divisor(config.save_data.divisor.tariffs_divisor);
-                from32to24(adv_tariff_data.tariff.tariff_3, tariff);
-            }
-
-            if (config.save_data.encrypted) {
-                bthome_encrypt_tariff_data_beacon();
-            }
+            set_adv_tariffs();
         }
         if (config.save_data.encrypted) {
             bls_ll_setAdvData((uint8_t*)&adv_crypt_tariff_data, sizeof(adv_crypt_tariff_t));
@@ -358,6 +370,7 @@ _attribute_ram_code_ int app_advertise_prepare_handler(rf_packet_adv_t * p)  {
     adv_counter++;
     return 1;
 }
+
 
 
 extern attribute_t my_Attributes[ATT_END_H];
@@ -413,23 +426,7 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
     adv_tariff_data.tariff.tariff2_id = BTHomeID_energy;
     adv_tariff_data.tariff.tariff3_id = BTHomeID_energy;
 
-    uint32_t tariff;
-    if (config.save_data.divisor.tariffs_sign) {
-        tariff = meter.tariff_1 * get_divisor(config.save_data.divisor.tariffs_divisor);
-        from32to24(adv_tariff_data.tariff.tariff_1, tariff);
-        tariff = meter.tariff_2 * get_divisor(config.save_data.divisor.tariffs_divisor);
-        from32to24(adv_tariff_data.tariff.tariff_2, tariff);
-        tariff = meter.tariff_3 * get_divisor(config.save_data.divisor.tariffs_divisor);
-        from32to24(adv_tariff_data.tariff.tariff_3, tariff);
-    } else {
-        tariff = meter.tariff_1 / get_divisor(config.save_data.divisor.tariffs_divisor);
-        from32to24(adv_tariff_data.tariff.tariff_1, tariff);
-        tariff = meter.tariff_2 / get_divisor(config.save_data.divisor.tariffs_divisor);
-        from32to24(adv_tariff_data.tariff.tariff_2, tariff);
-        tariff = meter.tariff_3 / get_divisor(config.save_data.divisor.tariffs_divisor);
-        from32to24(adv_tariff_data.tariff.tariff_3, tariff);
-    }
-
+    set_adv_tariffs();
 
     adv_pva_data.flg_size  = 0x02;              /* size  */
     adv_pva_data.flg_type  = GAP_ADTYPE_FLAGS;  /* 0x01  */
@@ -444,33 +441,11 @@ __attribute__((optimize("-Os"))) void init_ble(void) {
     adv_pva_data.pva.pid = 0;
 
     adv_pva_data.pva.power_id = BTHomeID_power;
-    uint32_t power;
-    if (config.save_data.divisor.power_sign) {
-        power = meter.power * get_divisor(config.save_data.divisor.power_divisor);
-    } else {
-        power = meter.power / get_divisor(config.save_data.divisor.power_divisor);
-    }
-    from32to24(adv_pva_data.pva.power, power);
-
     adv_pva_data.pva.voltage220_id = BTHomeID_voltage;
-    uint16_t amps_volts;
-    if (config.save_data.divisor.voltage_sign) {
-        amps_volts = meter.voltage * get_divisor(config.save_data.divisor.voltage_divisor);
-    } else {
-        amps_volts = meter.voltage / get_divisor(config.save_data.divisor.voltage_divisor);
-    }
-    adv_pva_data.pva.voltage220 = amps_volts;
-
     adv_pva_data.pva.amps_id = BTHomeID_current;
-    if (config.save_data.divisor.current_sign) {
-        amps_volts = meter.amps * get_divisor(config.save_data.divisor.current_divisor);
-    } else {
-        amps_volts = meter.amps / get_divisor(config.save_data.divisor.current_divisor);
-    }
-    adv_pva_data.pva.amps = amps_volts;
-
     adv_pva_data.pva.battery_id = BTHomeID_battery;
-    adv_pva_data.pva.battery_level = meter.battery_level;
+
+    set_adv_pva();
 
 //    adv_pva_data.pva.voltage3_3_id = BTHomeID_voltage_001;
 //    adv_pva_data.pva.voltage3_3 = battery_mv;
