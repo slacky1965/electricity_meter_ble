@@ -12,7 +12,6 @@ typedef enum _device_type_t {
     device_kaskad_11,
     device_mercury_206,
     device_energomera_ce102m,
-    device_energomera_ce102
 } device_type_t;
 
 typedef struct __attribute__((packed)) _divisor_t {
