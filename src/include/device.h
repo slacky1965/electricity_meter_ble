@@ -6,6 +6,8 @@
 #define MULTIPLIER          1
 #define DIVISOR             0
 
+#define RESOURCE_BATTERY    120         /* in month */
+
 typedef enum _device_type_t {
     device_undefined = 0,
     device_kaskad_1_mt,

@@ -2,13 +2,13 @@
 #define SRC_INCLUDE_MERCURY_206_H_
 
 typedef enum _command_t {
-    cmd_serial_number  = 0x2f,
-    cmd_tariffs_data   = 0x27,
-    cmd_net_params     = 0x63,
-    cmd_date_release   = 0x66,
-    cmd_running_time   = 0x69,
-    cmd_timeout        = 0x82,
-    cmd_test_error     = 0xf0
+    cmd_serial_number   = 0x2f,
+    cmd_tariffs_data    = 0x27,
+    cmd_net_params      = 0x63,
+    cmd_date_release    = 0x66,
+    cmd_running_time    = 0x69,
+    cmd_timeout         = 0x82,
+    cmd_test_error      = 0xf0
 } command_t;
 
 typedef struct __attribute__((packed)) _package_t {

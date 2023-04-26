@@ -51,6 +51,15 @@ _attribute_ram_code_ static uint8_t from_bcd_to_dec(uint8_t bcd) {
     return dec;
 }
 
+_attribute_ram_code_ static uint32_t get_running_time(uint8_t *str) {
+
+    uint32_t tl = from_bcd_to_dec(str[0]) * 10000;
+    tl += from_bcd_to_dec(str[1]) * 100;
+    tl += from_bcd_to_dec(str[2]);
+
+    return tl;
+}
+
 _attribute_ram_code_ static uint8_t send_command(package_t *pkt) {
 
     size_t len;
@@ -116,6 +125,13 @@ _attribute_ram_code_ static pkt_error_t response_meter(uint8_t command) {
 
 
     if (load_size) {
+#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
+        printf("response pkt: 0x");
+        for (int i = 0; i < load_size; i++) {
+            printf("%02x", buff[i]);
+        }
+        printf("\r\n");
+#endif
         if (load_size > 6) {
             response_pkt.pkt_len = load_size;
             uint16_t crc = checksum((uint8_t*)&response_pkt, load_size-2);
@@ -140,39 +156,8 @@ _attribute_ram_code_ static pkt_error_t response_meter(uint8_t command) {
     }
 
 
-#if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-    switch (pkt_error_no) {
-        case PKT_ERR_TIMEOUT:
-            printf("Response timed out\r\n");
-            break;
-        case PKT_ERR_RESPONSE:
-            printf("Response error\r\n");
-            break;
-        case PKT_ERR_UNKNOWN_FORMAT:
-        case PKT_ERR_NO_PKT:
-            printf("Unknown response format\r\n");
-            break;
-        case PKT_ERR_DIFFERENT_COMMAND:
-            printf("Request and response command are different\r\n");
-            break;
-        case PKT_ERR_INCOMPLETE:
-            printf("Not a complete response\r\n");
-            break;
-        case PKT_ERR_UNSTUFFING:
-            printf("Wrong unstuffing\r\n");
-            break;
-        case PKT_ERR_ADDRESS:
-            printf("Invalid device address\r\n");
-            break;
-        case PKT_ERR_CRC:
-            printf("Wrong CRC\r\n");
-            break;
-        case PKT_ERR_UART:
-            printf("UART is busy\r\n");
-            break;
-        default:
-            break;
-    }
+#if UART_PRINT_DEBUG_ENABLE
+    if (pkt_error_no != PKT_OK) print_error(pkt_error_no);
 #endif
 
     return pkt_error_no;
@@ -207,6 +192,10 @@ _attribute_ram_code_ static uint32_t tariff_from_bcd(uint32_t tariff_bcd) {
 
 _attribute_ram_code_ static void get_tariffs_data() {
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive tariffs\r\n");
+#endif
+
     set_command(cmd_tariffs_data);
 
     if (send_command(&request_pkt)) {
@@ -235,9 +224,9 @@ _attribute_ram_code_ static void get_tariffs_data() {
             }
 
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            printf("tariff1: %u,%u\r\n", meter.tariff_1 / 10, meter.tariff_1 % 10);
-            printf("tariff2: %u,%u\r\n", meter.tariff_2 / 10, meter.tariff_2 % 10);
-            printf("tariff3: %u,%u\r\n", meter.tariff_3 / 10, meter.tariff_3 % 10);
+            printf("tariff1: %u\r\n", meter.tariff_1);
+            printf("tariff2: %u\r\n", meter.tariff_2);
+            printf("tariff3: %u\r\n", meter.tariff_3);
 #endif
 
         }
@@ -245,6 +234,10 @@ _attribute_ram_code_ static void get_tariffs_data() {
 }
 
 _attribute_ram_code_ static void get_net_params_data() {
+
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive net parameters (power, voltage, current)\r\n");
+#endif
 
     set_command(cmd_net_params);
 
@@ -279,9 +272,9 @@ _attribute_ram_code_ static void get_net_params_data() {
                 ampere_notify = NOTIFY_MAX;
             }
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            printf("voltage: %u.%u\r\n", meter.voltage/10, meter.voltage%10);
+            printf("voltage: %u\r\n", meter.voltage);
             printf("power:   %u\r\n", meter.power);
-            printf("amps:    %u.%u\r\n", amps/100, amps%100);
+            printf("amps:    %u\r\n", amps);
 #endif
         }
     }
@@ -289,22 +282,46 @@ _attribute_ram_code_ static void get_net_params_data() {
 
 _attribute_ram_code_ static void get_resbat_data() {
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive running time (to get battery life)\r\n");
+#endif
+
+    uint8_t lifetime = RESOURCE_BATTERY, worktime;
+
     set_command(cmd_running_time);
 
     if (send_command(&request_pkt)) {
         if (response_meter(cmd_running_time) == PKT_OK) {
             pkt_running_time_t *pkt_running_time = (pkt_running_time_t*)&response_pkt;
-            printf("tl: %02u%02u%02u\r\n", from_bcd_to_dec(pkt_running_time->tl[0]),
-                                           from_bcd_to_dec(pkt_running_time->tl[1]),
-                                           from_bcd_to_dec(pkt_running_time->tl[2]));
-            printf("tlb: %02u%02u%02u\r\n",from_bcd_to_dec(pkt_running_time->tlb[0]),
-                                           from_bcd_to_dec(pkt_running_time->tlb[1]),
-                                           from_bcd_to_dec(pkt_running_time->tlb[2]));
+
+            uint32_t rt = get_running_time(pkt_running_time->tl);
+            rt += get_running_time(pkt_running_time->tlb);
+
+            worktime = lifetime - (rt / 24 / 30);
+
+#if UART_PRINT_DEBUG_ENABLE
+            printf("Resource battery: %u.%u\r\n", (worktime*100)/lifetime, ((worktime*100)%lifetime)*100/lifetime);
+#endif
+
+            uint8_t battery_level = (worktime*100)/lifetime;
+
+            if (((worktime*100)%lifetime) >= (lifetime/2)) {
+                battery_level++;
+            }
+
+            if (meter.battery_level != battery_level) {
+                meter.battery_level = battery_level;
+                pva_changed = true;
+            }
         }
     }
 }
 
 _attribute_ram_code_ void get_date_release_data_mercury206() {
+
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive date of release\r\n");
+#endif
 
     set_command(cmd_date_release);
 
@@ -326,14 +343,19 @@ _attribute_ram_code_ void get_date_release_data_mercury206() {
 
 _attribute_ram_code_ void get_serial_number_data_mercury206() {
 
+#if UART_PRINT_DEBUG_ENABLE
+    printf("Start command to receive serial number\r\n");
+#endif
+
     set_command(cmd_serial_number);
 
     if (send_command(&request_pkt)) {
         if (response_meter(cmd_serial_number) == PKT_OK) {
             pkt_serial_num_t *pkt_serial_num = (pkt_serial_num_t*)&response_pkt;
-            meter.serial_number_len = sprintf((char*)meter.serial_number, "%u", pkt_serial_num->addr);
+            uint32_t addr = reverse32(pkt_serial_num->addr);
+            meter.serial_number_len = sprintf((char*)meter.serial_number, "%u", addr);
 #if UART_PRINT_DEBUG_ENABLE && UART_DEBUG
-            printf("serial number: %08x (%u)\r\n", pkt_serial_num->addr, pkt_serial_num->addr);
+            printf("serial number: %08x (%u)\r\n", addr, addr);
 #endif
         }
     }
@@ -348,10 +370,14 @@ _attribute_ram_code_ uint8_t get_timeout_data() {
             return true;
         }
     }
+
     return false;
 }
 
 _attribute_ram_code_ void measure_meter_mercury206() {
+
+    get_timeout_data();     /* does not respond to the first command after a pause. fake command */
+    sleep_ms(500);
 
     if (get_timeout_data()) {
         if (new_start) {

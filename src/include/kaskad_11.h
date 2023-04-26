@@ -1,8 +1,6 @@
 #ifndef SRC_INCLUDE_KASKAD_11_H_
 #define SRC_INCLUDE_KASKAD_11_H_
 
-#define RESOURCE_BATTERY    120     /* in month */
-
 typedef enum _command_t {
     cmd_open_channel    = 0x02,
     cmd_close_channel   = 0x03,
