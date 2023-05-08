@@ -157,7 +157,7 @@ _attribute_ram_code_ static pkt_error_t response_meter(uint8_t command) {
 #endif
 
     if (pkt_error_no != PKT_OK && get_queue_len_buff_uart()) {
-        response_meter(command);
+        pkt_error_no = response_meter(command);
     }
 
     return pkt_error_no;
