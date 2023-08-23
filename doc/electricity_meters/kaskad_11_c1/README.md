@@ -4,7 +4,7 @@
 
 ## Описание особенностей работы с этим счетчиком
 
-Счетчик общается по своему [протоколу](https://github.com/slacky1965/electricity_meter_ble/blob/main/doc/electricity_meters/kaskad_11_c1/2023.01.12-KASKAD_11.doc?raw=true).
+Счетчик общается по своему [протоколу](https://github.com/slacky1965/electricity_meter_ble/raw/main/doc/electricity_meters/kaskad_11_c1/2023.01.12-KASKAD_11.doc).
 
 В настоящий момент устройство может прочитать из счетчика:
 
