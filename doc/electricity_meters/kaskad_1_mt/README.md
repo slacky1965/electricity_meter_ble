@@ -4,7 +4,7 @@
 
 ## Описание особенностей работы с этим счетчиком
 
-Счетчик общается по протоколу [МИРТЕК](https://github.com/slacky1965/electricity_meter_ble/blob/main/doc/electricity_meters/kaskad_1_mt/Star_104_304_1.20.doc?raw=true).
+Счетчик общается по протоколу [МИРТЕК](https://github.com/slacky1965/electricity_meter_ble/raw/main/doc/electricity_meters/kaskad_1_mt/Star_104_304_1.20.doc).
 
 В настоящий момент устройство может прочитать из счетчика:
 
