@@ -2,7 +2,7 @@
 
 ## Устройство для дистанционного мониторинга многотарифных однофазных счетчиков с последующей передачей показаний в Home Assistant.
 
-**Включает в себя схему опротопорта и модуль от Ai-Thinker TB-04**
+**Включает в себя схему оптопорта и модуль от Ai-Thinker TB-04**
 
 [Repository electricity_meter_ble](https://github.com/slacky1965/electricity_meter_ble)
 
